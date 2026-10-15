@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f6f6ef" />
+    <meta name="description" content="Catálogo Vitta Farm para atendimento no Paraguai. Consulte produtos, preços e disponibilidade diretamente pelo WhatsApp." />
+    <title>Vitta Farm | Catálogo Paraguai</title>
+    <link rel="icon" href="./images/vitta-mark.png" type="image/png" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <div class="announcement-bar">
+      <span class="announcement-dot" aria-hidden="true"></span>
+      <span>Atendimento somente no Paraguai</span>
+      <span class="announcement-divider" aria-hidden="true"></span>
+      <span>Pedidos e dúvidas pelo WhatsApp</span>
+    </div>
+
+    <header class="site-header">
+      <div class="header-inner page-shell">
+        <a class="brand" href="#top" aria-label="Vitta Farm — início">
+          <img class="brand-mark" src="./images/vitta-mark.png" alt="" width="38" height="38" />
+          <span class="brand-name"><strong>Vitta</strong><span>FARM</span></span>
+        </a>
+        <nav class="main-nav" aria-label="Navegação principal">
+          <a href="#produtos">Produtos</a>
+          <a href="#como-pedir">Como pedir</a>
+        </nav>
+        <a class="header-contact" href="https://wa.me/5545991013749?text=Ol%C3%A1%2C%20Vitta%20Farm!%20Quero%20consultar%20um%20produto." target="_blank" rel="noopener noreferrer">
+          <span>Fale com a Vitta</span>
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M10 5l5 5-5 5" /></svg>
+        </a>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero page-shell" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> Catálogo direto <span class="eyebrow-slash">/</span> Paraguai</p>
+          <h1 id="hero-title">Escolha seu produto.<br /><span>Pedido direto.</span></h1>
+          <p class="hero-description">Um catálogo claro, com atendimento para consultar valores e disponibilidade pelo WhatsApp.</p>
+          <a class="button button-primary" href="#produtos">
+            Ver produtos
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.5v12M5.5 11l4.5 4.5 4.5-4.5" /></svg>
+          </a>
+          <p class="location-note">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16 8.5c0 4.2-6 9-6 9s-6-4.8-6-9a6 6 0 1 1 12 0Z" /><circle cx="10" cy="8.5" r="2" /></svg>
+            Atendimento e entrega somente no Paraguai
+          </p>
+        </div>
+        <aside class="hero-summary" aria-label="Resumo do catálogo">
+          <div class="summary-topline"><span>VITTA FARM / PY</span><span>01 — 06</span></div>
+          <p class="summary-number">06 <span>produtos</span></p>
+          <div class="summary-rule"></div>
+          <p class="summary-caption">Veja as opções e converse com a equipe para confirmar preço e disponibilidade.</p>
+          <p class="summary-footnote"><span aria-hidden="true">●</span> Sem pagamento online nesta etapa</p>
+        </aside>
+      </section>
+
+      <section class="catalog-section page-shell" id="produtos" aria-labelledby="catalog-title">
+        <div class="section-rule-heading">
+          <p class="eyebrow section-index"><span>01</span><i aria-hidden="true"></i> Catálogo</p>
+          <span class="catalog-total"><strong>06</strong> itens</span>
+        </div>
+
+        <div class="catalog-heading-row">
+          <div class="catalog-heading-copy">
+            <p class="section-kicker">Seleção Vitta</p>
+            <h2 id="catalog-title">Produtos em destaque</h2>
+            <p class="section-description">Preços de referência. Confirme o valor e a disponibilidade pelo WhatsApp.</p>
+          </div>
+          <div class="carousel-controls" aria-label="Controles do carrossel de produtos">
+            <span class="carousel-status" id="carousel-status" aria-live="polite">01–03 / 06</span>
+            <button class="carousel-button" id="carousel-prev" type="button" aria-label="Ver produtos anteriores" disabled>
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M15.5 10h-11M10 4.5 4.5 10l5.5 5.5" /></svg>
+            </button>
+            <button class="carousel-button" id="carousel-next" type="button" aria-label="Ver mais produtos">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 10h11M10 4.5l5.5 5.5-5.5 5.5" /></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="products-track" id="products-track" role="list" aria-label="Produtos Vitta Farm"></div>
+
+        <div class="carousel-footer">
+          <span class="carousel-hint"><span class="hint-arrow" aria-hidden="true">←</span> Deslize para explorar os produtos <span class="hint-arrow" aria-hidden="true">→</span></span>
+          <span class="scroll-meter" aria-hidden="true"><span id="scroll-meter-fill"></span></span>
+        </div>
+
+        <div class="price-note">
+          <span class="note-icon" aria-hidden="true">i</span>
+          <p>Valores de referência; podem variar. A disponibilidade e o valor final são confirmados no atendimento.</p>
+        </div>
+      </section>
+
+      <section class="how-section" id="como-pedir" aria-labelledby="how-title">
+        <div class="how-inner page-shell">
+          <div class="how-intro">
+            <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> Atendimento Vitta</p>
+            <h2 id="how-title">Dúvidas?<br /><span>Fale com a Vitta Farm.</span></h2>
+            <p>Converse com a equipe para confirmar as informações do produto e a disponibilidade.</p>
+            <a class="button button-light" href="https://wa.me/5545991013749?text=Ol%C3%A1%2C%20Vitta%20Farm!%20Quero%20consultar%20a%20disponibilidade%20dos%20produtos." target="_blank" rel="noopener noreferrer">
+              Abrir WhatsApp
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M10 5l5 5-5 5" /></svg>
+            </a>
+          </div>
+          <div class="how-steps" aria-label="Como fazer uma consulta">
+            <div class="how-step"><span class="step-number">01</span><div><h3>Escolha uma opção</h3><p>Explore o catálogo e selecione o produto que deseja consultar.</p></div></div>
+            <div class="how-step"><span class="step-number">02</span><div><h3>Chame no WhatsApp</h3><p>Envie sua dúvida diretamente para a equipe Vitta Farm.</p></div></div>
+            <div class="how-step"><span class="step-number">03</span><div><h3>Confirme os detalhes</h3><p>Preço e disponibilidade são confirmados no atendimento.</p></div></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer page-shell">
+      <div class="footer-top">
+        <a class="brand footer-brand" href="#top" aria-label="Vitta Farm — voltar ao início">
+          <img class="brand-mark" src="./images/vitta-mark.png" alt="" width="34" height="34" />
+          <span class="brand-name"><strong>Vitta</strong><span>FARM</span></span>
+        </a>
+        <span class="footer-location"><span class="announcement-dot" aria-hidden="true"></span> Atendimento somente no Paraguai</span>
+      </div>
+      <div class="footer-bottom">
+        <p class="health-disclaimer">Consulte um profissional de saúde. Preços e disponibilidade são confirmados no atendimento.</p>
+        <p class="copyright">© 2026 Vitta Farm</p>
+      </div>
+    </footer>
+  </body>
+</html>
