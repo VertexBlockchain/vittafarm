@@ -123,6 +123,10 @@ async function handleCashIn(req, res) {
     return sendJson(res, 400, { error: 'Não foi possível identificar o dispositivo. Atualize a página e tente novamente.' });
   }
 
+  if (process.env.PIXGATE_LIVE_CASHIN !== 'true') {
+    return sendJson(res, 503, { error: 'A geração de cobranças reais está desabilitada nesta prévia. Nenhuma cobrança foi enviada à Pixgate.' });
+  }
+
   const apiKey = process.env.PIXGATE_API_KEY;
   if (!apiKey) {
     return sendJson(res, 503, { error: 'A cobrança PIX está temporariamente indisponível.' });
