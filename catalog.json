@@ -1,0 +1,119 @@
+{
+  "principle": {
+    "name": "Tirzepatida",
+    "explanation": "A tirzepatida ativa os receptores GIP e GLP-1. A bula oficial descreve aumento da secreção de insulina e redução do glucagon dependentes da glicose. Esta é uma informação farmacológica geral; consulte a bula específica do produto e um profissional de saúde.",
+    "sources": [
+      {
+        "title": "Bula FDA de Mounjaro (tirzepatida), usada para o mecanismo geral — seção 12.1",
+        "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2026/215866s009lbl.pdf"
+      }
+    ]
+  },
+  "products": [
+    {
+      "id": "lipoless",
+      "name": "Lipoless",
+      "manufacturer": "Eticos",
+      "dose": "15 mg",
+      "packageCount": "4 seringas pré-preenchidas",
+      "packageNote": "A apresentação oficial Lipoless 15 é uma caixa com quatro seringas pré-preenchidas de 0,5 mL. Não confundir com Lipoless MD, que é outra apresentação em frasco multidose.",
+      "packageConfidence": "official",
+      "unitContent": "Cada seringa: 15 mg em 0,5 mL.",
+      "packageSources": [
+        { "title": "Lipoless® 15 — Eticos", "url": "https://eticos.com.py/producto/lipoless-15" },
+        { "title": "Prospecto oficial de Lipoless 15 — Eticos", "url": "https://eticos.com.py/wp-content/uploads/2025/05/LIPOLESS-SOL-INY-C-VASTAGO-VP-PRO.pdf" }
+      ],
+      "priceCents": 48423,
+      "image": "./images/lipoless.png",
+      "alt": "Embalagem Lipoless 15 mg do Laboratório Eticos"
+    },
+    {
+      "id": "tirzec",
+      "name": "Tirzec",
+      "manufacturer": "Quimfa",
+      "dose": "15 mg",
+      "packageCount": "1 frasco de 2 mL + 4 seringas estéreis",
+      "packageNote": "A Quimfa informa um frasco de 2 mL e quatro seringas estéreis com agulha. As quatro unidades adicionais são seringas, não frascos. A fonte oficial consultada não esclarece se os 15 mg se referem ao total do frasco ou à concentração; não inferir a massa por unidade.",
+      "packageConfidence": "official",
+      "unitContent": "Volume declarado por frasco: 2 mL; massa de tirzepatida por frasco não confirmada na página do fabricante.",
+      "packageSources": [
+        { "title": "TIRZEC 15 — Quimfa", "url": "https://www.quimfa.com.py/producto/tirzec-15/" },
+        { "title": "Prospecto oficial de TIRZEC — Quimfa", "url": "https://www.quimfa.com.py/prospectos/683.docx" }
+      ],
+      "priceCents": 48423,
+      "image": "./images/tirzec.png",
+      "alt": "Embalagem Tirzec 15 mg da Quimfa"
+    },
+    {
+      "id": "gluconex",
+      "name": "Gluconex",
+      "manufacturer": "Lasca",
+      "dose": "15 mg",
+      "packageCount": "4 frascos*",
+      "packageNote": "A Lasca confirma que existe a apresentação de 15 mg, mas a página oficial não informa quantos frascos vêm na caixa. Quatro frascos de 1 mL e 15 mg/1 mL aparecem em páginas de varejistas; não encontrei confirmação em bula ou ficha oficial. Confirme a embalagem física antes da compra.",
+      "packageConfidence": "retail-only",
+      "unitContent": "O conteúdo de 15 mg/1 mL por frasco é informado por varejistas, mas não foi confirmado oficialmente.",
+      "packageSources": [
+        { "title": "Apresentações de Gluconex — Lasca (não informa a quantidade por caixa)", "url": "https://www.lasca.com.py/news/899529" },
+        { "title": "Gluconex 15 mg — Farmacia Santa Rita (listagem comercial)", "url": "https://farmaciasantaritaparaguai.com.br/p/gluconex-15-mg" },
+        { "title": "Gluconex 15 — Farmacia do Sul (listagem comercial)", "url": "https://farmaciadosul.com/producto/gluconex-15-2/" }
+      ],
+      "priceCents": 51760,
+      "image": "./images/gluconex.jpg",
+      "alt": "Caixa Gluconex 15 mg da Lasca"
+    },
+    {
+      "id": "tirzedral",
+      "name": "Tirzedral",
+      "manufacturer": "Catedral",
+      "dose": "5 mg",
+      "packageCount": "4 seringas pré-preenchidas",
+      "packageNote": "O prospecto oficial de Tirzedral 5 confirma uma caixa com quatro seringas pré-preenchidas. A marca tem outros formatos, que não devem ser confundidos com esta apresentação de 5 mg.",
+      "packageConfidence": "official",
+      "unitContent": "Cada seringa: 5 mg em 0,5 mL.",
+      "packageSources": [
+        { "title": "Prospecto oficial de Tirzedral 5 — Laboratorios Catedral", "url": "https://laboratorioscatedral.com.py/wp-content/uploads/Prospecto-Tirzedral.pdf" },
+        { "title": "Tirzedral 5 mg, caixa com 4 seringas — Farmacia Catedral", "url": "https://www.farmaciacatedral.com.py/producto/19324/tirzedral-5mg-cj-x-4-jerprellenadas" }
+      ],
+      "priceCents": 30265,
+      "image": "./images/tirzedral.jpg",
+      "alt": "Caixa Tirzedral 5 mg do Laboratório Catedral"
+    },
+    {
+      "id": "slimex",
+      "name": "Slimex",
+      "manufacturer": "Não confirmado oficialmente",
+      "dose": "15 mg",
+      "packageCount": "4 frascos*",
+      "packageNote": "O registro DINAVISA localizado confirma Slimex 15 como tirzepatida, mas não informa a quantidade nem o conteúdo por unidade. Quatro frascos e 15 mg/0,5 mL aparecem em listagens comerciais, sem confirmação oficial do fabricante ou do regulador. Confirme a embalagem física antes da compra.",
+      "packageConfidence": "retail-only",
+      "unitContent": "15 mg/0,5 mL é informado por varejistas; não foi confirmado oficialmente por frasco.",
+      "packageSources": [
+        { "title": "Registro sanitário de Slimex 15 — DINAVISA/DNVS", "url": "https://dnvspy.mspbs.gov.py/dnvspy/page-qr-rs.php?param=WCt3VVVkR3k1QndwNkQ4c3hGcGQvQT09OjpFaeJwLXyQCRhsgih3np8+" },
+        { "title": "Slimex 15 mg x 4 viales — Farma10 (listagem comercial)", "url": "https://farma10.com.py/producto/102816" },
+        { "title": "Slimex 15 mg/0,5 mL, 4 frascos — Compras Paraguai (listagem comercial)", "url": "https://www.comprasparaguai.com.br/slimex-tirzepatida-15-mg05ml-4-frascos-com-solucao-injetavel__5337336/" }
+      ],
+      "priceCents": 49021,
+      "image": "./images/slimex.jpg",
+      "alt": "Embalagem Slimex 15 mg"
+    },
+    {
+      "id": "tg15",
+      "name": "T.G. 15mg",
+      "manufacturer": "Indufar",
+      "dose": "15 mg",
+      "packageCount": "4 frascos*",
+      "packageNote": "Quatro frascos são mencionados por uma nota empresarial e por um varejista; não encontrei confirmação dessa apresentação em página do fabricante ou documento regulatório acessível. A listagem comercial também descreve 15 mg/0,5 mL, mas esse conteúdo por frasco não foi confirmado oficialmente.",
+      "packageConfidence": "commercial-corroboration",
+      "unitContent": "O conteúdo de 15 mg/0,5 mL por frasco é informado comercialmente, sem confirmação oficial localizada.",
+      "packageSources": [
+        { "title": "Nova apresentação de T.G. — ABC Color, seção empresarial", "url": "https://www.abc.com.py/empresariales/2025/11/21/indufar-amplia-la-gama-de-tg-tirzepatida-con-una-nueva-presentacion-monodosis-mas-practica-y-segura/" },
+        { "title": "T.G. 15, caixa com 4 viales — Farma del Este (listagem comercial)", "url": "https://farmadeleste.com/producto/t-g-15-tirzepatida-15mg-05ml-cj-4-vial/" },
+        { "title": "Vademécum Indufar", "url": "https://www.indufar.com.py/productos/detalle/4" }
+      ],
+      "priceCents": 54476,
+      "image": "./images/tg15.jpg",
+      "alt": "Embalagem T.G. 15 mg da Indufar"
+    }
+  ]
+}
