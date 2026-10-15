@@ -117,7 +117,7 @@ async function handleCashIn(req, res) {
     return sendJson(res, 409, { error: 'O preço deste produto ainda não foi confirmado. A compra permanece desabilitada.' });
   }
   if (product.researchUseOnly && body.researchUseConsent !== true) {
-    return sendJson(res, 400, { error: 'Confirme que leu o aviso “Research Use Only” para este produto.' });
+    return sendJson(res, 400, { error: 'Confirme que entendeu que este produto é destinado somente à pesquisa e não ao uso humano.' });
   }
   if (nome.length < 3 || nome.length > 120 || nameParts.length < 2) {
     return sendJson(res, 400, { error: 'Informe seu nome completo.' });

@@ -127,10 +127,10 @@
       "priceCents": 44990,
       "priceUnit": "frasco",
       "image": "./images/ghk-cu-thera.webp",
-      "alt": "Frasco de GHK-Cu Thera 50 mg; o rótulo diz Research Use Only",
+      "alt": "Frasco de GHK-Cu Thera 50 mg com tampa azul, conforme a imagem enviada",
       "category": "Peptídeo de cobre · Pesquisa",
       "researchUseOnly": true,
-      "publicWarning": "Rótulo: “Research Use Only” — uso exclusivo para pesquisa; não destinado a consumo ou uso humano.",
+      "researchUseDisclosure": "Uso exclusivo para pesquisa; não destinado a consumo ou uso humano.",
       "explanation": "GHK-Cu é um complexo de cobre associado ao tripeptídeo GHK (glicil-L-histidil-L-lisina). A literatura consultada reúne pesquisas laboratoriais, pré-clínicas e tópicas; ela não verifica a qualidade deste frasco nem permite inferir segurança para este produto ou para uso injetável.",
       "sources": [
         { "title": "Revisão sobre GHK-Cu — Pickart & Margolina, 2018", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6073405/" }

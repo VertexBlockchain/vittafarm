@@ -62,7 +62,7 @@ function openProductInfo(product) {
   infoPackage.textContent = `${product.dose} · Conteúdo: ${product.packageCount || 'quantidade não confirmada'}`;
   const details = [
     product.explanation || catalog.principle.explanation,
-    product.publicWarning,
+    product.researchUseDisclosure,
     product.packageNote,
     product.unitContent ? `Conteúdo por unidade: ${product.unitContent}` : '',
   ].filter(Boolean);
@@ -134,12 +134,6 @@ function addProductCard(product, index) {
   packageCount.className = 'product-package';
   packageCount.textContent = product.packageCount ? `Conteúdo: ${product.packageCount}` : 'Conteúdo da caixa: a confirmar';
   if (product.packageConfidence !== 'official') packageCount.classList.add('product-package-unverified');
-  const warning = product.publicWarning ? document.createElement('p') : null;
-  if (warning) {
-    warning.className = 'product-warning';
-    warning.textContent = product.publicWarning;
-  }
-
   const priceBlock = document.createElement('div');
   priceBlock.className = 'product-price-block';
   const priceInfo = document.createElement('div');
@@ -171,9 +165,7 @@ function addProductCard(product, index) {
   more.addEventListener('click', () => openProductInfo(product));
   actions.append(buy, more);
 
-  detail.append(type, title, dose, packageCount);
-  if (warning) detail.append(warning);
-  detail.append(priceBlock, actions);
+  detail.append(type, title, dose, packageCount, priceBlock, actions);
   card.append(visual, detail);
   track.append(card);
 }
@@ -241,7 +233,7 @@ async function submitCheckout(event) {
     return;
   }
   if (selectedProduct.researchUseOnly && !researchUseConsentInput.checked) {
-    checkoutError.textContent = 'Confirme que leu o aviso “Research Use Only”.';
+    checkoutError.textContent = 'Confirme que entendeu que este produto é destinado somente à pesquisa e não ao uso humano.';
     checkoutError.hidden = false;
     researchUseConsentInput.focus();
     return;
