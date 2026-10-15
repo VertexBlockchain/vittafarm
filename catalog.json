@@ -124,7 +124,7 @@
       "packageNote": "A imagem enviada mostra um frasco e declara 50 mg, 99.9% Purity e Made in UK. Não foi localizada ficha técnica oficial para verificar a marca, a origem, a pureza, a esterilidade, o lote ou a quantidade da embalagem comercial; as características permanecem declarações do rótulo.",
       "packageConfidence": "user-image",
       "unitContent": "50 mg conforme o rótulo enviado; a pureza de 99.9% é uma declaração do rótulo, não verificada independentemente.",
-      "priceCents": null,
+      "priceCents": 44990,
       "priceUnit": "frasco",
       "image": "./images/ghk-cu-thera.webp",
       "alt": "Frasco de GHK-Cu Thera 50 mg; o rótulo diz Research Use Only",
