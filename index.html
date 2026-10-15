@@ -45,8 +45,8 @@
           </a>
         </div>
         <aside class="hero-summary" aria-label="Resumo do catálogo">
-          <div class="summary-topline"><span>VITTA FARM / CATÁLOGO</span><span>01 — 06</span></div>
-          <p class="summary-number">06 <span>produtos</span></p>
+          <div class="summary-topline"><span>VITTA FARM / CATÁLOGO</span><span>01 — <span data-catalog-count>06</span></span></div>
+          <p class="summary-number"><strong data-catalog-count>06</strong> <span>produtos</span></p>
           <div class="summary-rule"></div>
           <p class="summary-caption">Veja a quantidade por caixa e abra os detalhes de cada produto antes de comprar.</p>
           <p class="summary-footnote"><span aria-hidden="true">●</span> WhatsApp disponível para dúvidas</p>
@@ -56,7 +56,7 @@
       <section class="catalog-section page-shell" id="produtos" aria-labelledby="catalog-title">
         <div class="section-rule-heading">
           <p class="eyebrow section-index"><span>01</span><i aria-hidden="true"></i> Catálogo</p>
-          <span class="catalog-total"><strong>06</strong> itens</span>
+          <span class="catalog-total"><strong data-catalog-count>06</strong> itens</span>
         </div>
 
         <div class="catalog-heading-row">
@@ -66,7 +66,7 @@
             <p class="section-description">Veja a apresentação e o valor por caixa. Abra “Saiba mais” para ler uma explicação breve.</p>
           </div>
           <div class="carousel-controls" aria-label="Controles do carrossel de produtos">
-            <span class="carousel-status" id="carousel-status" aria-live="polite">01–03 / 06</span>
+            <span class="carousel-status" id="carousel-status" aria-live="polite">01–03 / 07</span>
             <button class="carousel-button" id="carousel-prev" type="button" aria-label="Ver produtos anteriores" disabled>
               <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M15.5 10h-11M10 4.5 4.5 10l5.5 5.5" /></svg>
             </button>
@@ -85,7 +85,7 @@
 
         <div class="price-note">
           <span class="note-icon" aria-hidden="true">i</span>
-          <p>Quantidades marcadas com * aparecem em listagens comerciais e não foram confirmadas oficialmente. Veja as fontes em “Saiba mais” e confirme a embalagem física antes da compra. Consulte a bula específica e um profissional de saúde.</p>
+          <p>Quantidades marcadas com * são indicadas em listagens comerciais ou na imagem fornecida, mas não foram confirmadas independentemente. Veja as fontes em “Saiba mais” e confirme a embalagem física. O GHK-Cu está rotulado “Research Use Only”: uso exclusivo para pesquisa, não destinado a consumo ou uso humano. Consulte a bula específica e um profissional de saúde.</p>
         </div>
       </section>
 
@@ -156,6 +156,10 @@
               <input id="customer-cpf" name="cpf" type="text" inputmode="numeric" autocomplete="off" maxlength="18" placeholder="Somente números" required />
             </label>
             <p class="dialog-privacy">Seu nome e CPF/CNPJ serão enviados à Pixgate para gerar a cobrança. Este site não salva esses dados.</p>
+            <label class="consent-field" id="research-use-consent-row" hidden>
+              <input id="research-use-consent" type="checkbox" />
+              <span>Confirmo que li “Research Use Only” e entendo que este produto é somente para pesquisa, não para uso humano.</span>
+            </label>
             <label class="consent-field">
               <input id="pix-consent" type="checkbox" required />
               <span>Autorizo o envio desses dados à Pixgate para criar a cobrança PIX.</span>

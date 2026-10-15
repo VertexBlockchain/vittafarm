@@ -114,6 +114,28 @@
       "priceCents": 54476,
       "image": "./images/tg15.jpg",
       "alt": "Embalagem T.G. 15 mg da Indufar"
+    },
+    {
+      "id": "ghk-cu-thera",
+      "name": "GHK-Cu",
+      "manufacturer": "THERA Genetics (conforme rótulo enviado)",
+      "dose": "50 mg",
+      "packageCount": "1 frasco mostrado na imagem*",
+      "packageNote": "A imagem enviada mostra um frasco e declara 50 mg, 99.9% Purity e Made in UK. Não foi localizada ficha técnica oficial para verificar a marca, a origem, a pureza, a esterilidade, o lote ou a quantidade da embalagem comercial; as características permanecem declarações do rótulo.",
+      "packageConfidence": "user-image",
+      "unitContent": "50 mg conforme o rótulo enviado; a pureza de 99.9% é uma declaração do rótulo, não verificada independentemente.",
+      "priceCents": null,
+      "priceUnit": "frasco",
+      "image": "./images/ghk-cu-thera.webp",
+      "alt": "Frasco de GHK-Cu Thera 50 mg; o rótulo diz Research Use Only",
+      "category": "Peptídeo de cobre · Pesquisa",
+      "researchUseOnly": true,
+      "publicWarning": "Rótulo: “Research Use Only” — uso exclusivo para pesquisa; não destinado a consumo ou uso humano.",
+      "explanation": "GHK-Cu é um complexo de cobre associado ao tripeptídeo GHK (glicil-L-histidil-L-lisina). A literatura consultada reúne pesquisas laboratoriais, pré-clínicas e tópicas; ela não verifica a qualidade deste frasco nem permite inferir segurança para este produto ou para uso injetável.",
+      "sources": [
+        { "title": "Revisão sobre GHK-Cu — Pickart & Margolina, 2018", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6073405/" }
+      ],
+      "packageSources": []
     }
   ]
 }

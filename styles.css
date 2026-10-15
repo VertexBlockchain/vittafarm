@@ -85,6 +85,7 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 .summary-topline { display: flex; justify-content: space-between; gap: 16px; color: #6c8279; font-size: 9px; font-weight: 700; letter-spacing: .16em; }
 .summary-number { margin: 22px 0 15px; font-family: Manrope, sans-serif; font-size: 78px; font-weight: 600; letter-spacing: -.08em; line-height: .95; }
 .summary-number span { display: inline-block; margin-left: 7px; color: #6c8279; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; letter-spacing: 0; }
+.summary-number strong { font-weight: inherit; }
 .summary-rule { width: 100%; height: 1px; background: var(--line); }
 .summary-caption { max-width: 275px; margin: 16px 0 19px; color: #667971; font-size: 13px; line-height: 1.65; }
 .summary-footnote { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--green); font-size: 10px; font-weight: 700; }
@@ -234,10 +235,12 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 
 .product-package { margin: -9px 0 16px; color: #526d63; font-size: 11px; font-weight: 700; }
 .product-package-unverified { color: #80673c; }
+.product-warning { margin: -7px 0 14px; padding: 8px 10px; border-left: 2px solid #b57a22; border-radius: 0 7px 7px 0; color: #755725; background: #fbf5e8; font-size: 10px; font-weight: 700; line-height: 1.45; }
 .product-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 13px; }
 .product-cta, .product-info-button { width: 100%; min-height: 40px; cursor: pointer; }
 .product-cta { color: #fff; background: var(--green); border-color: var(--green); }
 .product-cta:hover { color: #fff; background: var(--green-dark); border-color: var(--green-dark); }
+.product-cta:disabled { color: #66746d; background: #e9ece7; border-color: #d6ddd6; cursor: not-allowed; opacity: .9; }
 .product-info-button { display: inline-flex; align-items: center; justify-content: center; padding: 0 10px; border: 1px solid #d2dfd5; border-radius: 999px; color: var(--green-dark); background: #fffefa; font-size: 10px; font-weight: 700; }
 .product-info-button:hover { background: var(--mint-soft); border-color: #b8d5c8; }
 .product-cta:focus-visible, .product-info-button:focus-visible, .dialog-close:focus-visible, .checkout-submit:focus-visible, #copy-pix:focus-visible { outline: 3px solid #8bcbb5; outline-offset: 3px; }

@@ -25,13 +25,20 @@ const copyPixButton = document.querySelector('#copy-pix');
 const nameInput = document.querySelector('#customer-name');
 const cpfInput = document.querySelector('#customer-cpf');
 const consentInput = document.querySelector('#pix-consent');
+const researchUseConsentRow = document.querySelector('#research-use-consent-row');
+const researchUseConsentInput = document.querySelector('#research-use-consent');
 const arrowIcon = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M10 5l5 5-5 5" /></svg>';
 
 let catalog = null;
 let selectedProduct = null;
 
 function formatPrice(priceCents) {
+  if (!Number.isSafeInteger(priceCents) || priceCents <= 0) return 'Preço a confirmar';
   return money.format(priceCents / 100);
+}
+
+function hasPrice(product) {
+  return Number.isSafeInteger(product.priceCents) && product.priceCents > 0;
 }
 
 function appendSource(source) {
@@ -54,13 +61,14 @@ function openProductInfo(product) {
   infoTitle.textContent = product.name;
   infoPackage.textContent = `${product.dose} · Conteúdo: ${product.packageCount || 'quantidade não confirmada'}`;
   const details = [
-    catalog.principle.explanation,
+    product.explanation || catalog.principle.explanation,
+    product.publicWarning,
     product.packageNote,
     product.unitContent ? `Conteúdo por unidade: ${product.unitContent}` : '',
   ].filter(Boolean);
   infoBody.textContent = details.join('\n\n') || 'Não há informações verificadas disponíveis neste momento.';
   infoSources.replaceChildren();
-  (catalog.principle.sources || []).forEach(appendSource);
+  (product.sources || catalog.principle.sources || []).forEach(appendSource);
   (product.packageSources || []).forEach(appendSource);
   if (infoSources.childElementCount === 0) {
     const note = document.createElement('span');
@@ -71,6 +79,7 @@ function openProductInfo(product) {
 }
 
 function openCheckout(product) {
+  if (!hasPrice(product)) return;
   selectedProduct = product;
   checkoutForm.reset();
   checkoutError.hidden = true;
@@ -82,9 +91,12 @@ function openCheckout(product) {
   copyPixButton.textContent = 'Copiar código PIX';
   checkoutProductName.textContent = `${product.name} · ${product.dose}`;
   const packageText = product.packageCount ? `Conteúdo da caixa: ${product.packageCount}` : 'Conteúdo da caixa a confirmar';
-  checkoutProductSummary.textContent = `${packageText}. Valor: ${formatPrice(product.priceCents)} por caixa.`;
+  const priceUnit = product.priceUnit ? `por ${product.priceUnit}` : 'por caixa';
+  checkoutProductSummary.textContent = `${packageText}. Valor: ${formatPrice(product.priceCents)} ${priceUnit}.`;
   checkoutPackageWarning.textContent = product.packageNote || '';
   checkoutPackageWarning.hidden = product.packageConfidence === 'official';
+  researchUseConsentRow.hidden = !product.researchUseOnly;
+  researchUseConsentInput.required = Boolean(product.researchUseOnly);
   checkoutDialog.showModal();
   nameInput.focus();
 }
@@ -112,7 +124,7 @@ function addProductCard(product, index) {
   detail.className = 'product-detail';
   const type = document.createElement('p');
   type.className = 'product-type';
-  type.textContent = 'Tirzepatida · Seleção Vitta';
+  type.textContent = product.category || `${catalog.principle.name} · Seleção Vitta`;
   const title = document.createElement('h3');
   title.textContent = product.name;
   const dose = document.createElement('p');
@@ -122,13 +134,18 @@ function addProductCard(product, index) {
   packageCount.className = 'product-package';
   packageCount.textContent = product.packageCount ? `Conteúdo: ${product.packageCount}` : 'Conteúdo da caixa: a confirmar';
   if (product.packageConfidence !== 'official') packageCount.classList.add('product-package-unverified');
+  const warning = product.publicWarning ? document.createElement('p') : null;
+  if (warning) {
+    warning.className = 'product-warning';
+    warning.textContent = product.publicWarning;
+  }
 
   const priceBlock = document.createElement('div');
   priceBlock.className = 'product-price-block';
   const priceInfo = document.createElement('div');
   const priceLabel = document.createElement('span');
   priceLabel.className = 'product-price-label';
-  priceLabel.textContent = 'Preço por caixa';
+  priceLabel.textContent = `Preço por ${product.priceUnit || 'caixa'}`;
   const price = document.createElement('strong');
   price.className = 'product-price';
   price.textContent = formatPrice(product.priceCents);
@@ -141,8 +158,11 @@ function addProductCard(product, index) {
   buy.className = 'product-cta';
   buy.type = 'button';
   buy.innerHTML = `Comprar ${arrowIcon}`;
-  buy.setAttribute('aria-label', `Comprar ${product.name}, ${product.dose}`);
-  buy.addEventListener('click', () => openCheckout(product));
+  const canBuy = hasPrice(product);
+  buy.disabled = !canBuy;
+  buy.title = canBuy ? '' : 'Preço ainda não confirmado; compra desabilitada.';
+  buy.setAttribute('aria-label', canBuy ? `Comprar ${product.name}, ${product.dose}` : `${product.name}, preço a confirmar; compra desabilitada`);
+  if (canBuy) buy.addEventListener('click', () => openCheckout(product));
   const more = document.createElement('button');
   more.className = 'product-info-button';
   more.type = 'button';
@@ -151,7 +171,9 @@ function addProductCard(product, index) {
   more.addEventListener('click', () => openProductInfo(product));
   actions.append(buy, more);
 
-  detail.append(type, title, dose, packageCount, priceBlock, actions);
+  detail.append(type, title, dose, packageCount);
+  if (warning) detail.append(warning);
+  detail.append(priceBlock, actions);
   card.append(visual, detail);
   track.append(card);
 }
@@ -218,6 +240,12 @@ async function submitCheckout(event) {
     consentInput.focus();
     return;
   }
+  if (selectedProduct.researchUseOnly && !researchUseConsentInput.checked) {
+    checkoutError.textContent = 'Confirme que leu o aviso “Research Use Only”.';
+    checkoutError.hidden = false;
+    researchUseConsentInput.focus();
+    return;
+  }
 
   checkoutSubmit.disabled = true;
   checkoutSubmit.textContent = 'Gerando PIX…';
@@ -231,6 +259,7 @@ async function submitCheckout(event) {
         cpf,
         device: detectDevice(),
         consent: true,
+        ...(selectedProduct.researchUseOnly ? { researchUseConsent: true } : {}),
       }),
     });
     const result = await response.json().catch(() => ({}));
@@ -289,9 +318,13 @@ async function loadCatalog() {
     const response = await fetch('./catalog.json', { cache: 'no-store' });
     if (!response.ok) throw new Error('O catálogo não está disponível neste momento.');
     catalog = await response.json();
-    if (!Array.isArray(catalog.products) || catalog.products.length !== 6) {
+    if (!Array.isArray(catalog.products) || catalog.products.length === 0) {
       throw new Error('Os dados do catálogo estão incompletos.');
     }
+    const productIds = new Set(catalog.products.map((product) => product.id));
+    if (productIds.size !== catalog.products.length) throw new Error('Os dados do catálogo contêm produtos duplicados.');
+    const total = String(catalog.products.length).padStart(2, '0');
+    document.querySelectorAll('[data-catalog-count]').forEach((element) => { element.textContent = total; });
     track.replaceChildren();
     catalog.products.forEach(addProductCard);
     previousButton.addEventListener('click', () => moveCarousel(-1));

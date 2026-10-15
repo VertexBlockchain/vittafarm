@@ -98,7 +98,7 @@ async function handleCashIn(req, res) {
     return sendJson(res, error.statusCode || 400, { error: error.message });
   }
 
-  const allowedKeys = new Set(['productId', 'nome', 'cpf', 'device', 'consent']);
+  const allowedKeys = new Set(['productId', 'nome', 'cpf', 'device', 'consent', 'researchUseConsent']);
   if (Object.keys(body).some((key) => !allowedKeys.has(key))) {
     return sendJson(res, 400, { error: 'O formulário contém campos não permitidos.' });
   }
@@ -113,6 +113,12 @@ async function handleCashIn(req, res) {
     return sendJson(res, 400, { error: 'Confirme o envio dos dados à Pixgate para gerar o PIX.' });
   }
   if (!product) return sendJson(res, 400, { error: 'Selecione um produto válido.' });
+  if (!Number.isSafeInteger(product.priceCents) || product.priceCents <= 0) {
+    return sendJson(res, 409, { error: 'O preço deste produto ainda não foi confirmado. A compra permanece desabilitada.' });
+  }
+  if (product.researchUseOnly && body.researchUseConsent !== true) {
+    return sendJson(res, 400, { error: 'Confirme que leu o aviso “Research Use Only” para este produto.' });
+  }
   if (nome.length < 3 || nome.length > 120 || nameParts.length < 2) {
     return sendJson(res, 400, { error: 'Informe seu nome completo.' });
   }
@@ -191,10 +197,11 @@ const contentTypes = Object.freeze({
   '.json': 'application/json; charset=utf-8',
   '.png': 'image/png',
   '.svg': 'image/svg+xml',
+  '.webp': 'image/webp',
 });
 
 const publicRootFiles = new Set(['index.html', 'styles.css', 'app.js', 'catalog.json', 'manus-routes.json']);
-const publicImagePath = /^images\/[a-z0-9._-]+\.(?:png|jpe?g|svg)$/i;
+const publicImagePath = /^images\/[a-z0-9._-]+\.(?:png|jpe?g|svg|webp)$/i;
 
 async function serveStatic(req, res, pathname) {
   let decodedPath;
