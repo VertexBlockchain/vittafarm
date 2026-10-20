@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#f6f6ef" />
+    <title>Vitta Farm | Painel de pedidos</title>
+    <link rel="icon" href="./images/vitta-mark.png" type="image/png" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./admin.js" defer></script>
+  </head>
+  <body class="admin-page">
+    <div class="announcement-bar">
+      <span class="announcement-dot" aria-hidden="true"></span>
+      <span>Vitta Farm / Área administrativa</span>
+    </div>
+
+    <header class="site-header">
+      <div class="header-inner page-shell">
+        <a class="brand" href="/" aria-label="Vitta Farm — catálogo">
+          <img class="brand-mark" src="./images/vitta-mark.png" alt="" width="38" height="38" />
+          <span class="brand-name"><strong>Vitta</strong><span>FARM</span></span>
+        </a>
+        <a class="admin-back-link" href="/">Voltar ao catálogo</a>
+      </div>
+    </header>
+
+    <main class="admin-shell page-shell">
+      <div class="admin-heading">
+        <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> Área privada</p>
+        <h1>Pedidos Vitta</h1>
+        <p class="admin-intro">Consulte pedidos e endereços enviados no checkout. O status da cobrança começa pendente e precisa ser conferido no painel Pixgate.</p>
+      </div>
+
+      <section class="admin-card admin-login-card" id="admin-login-view" aria-labelledby="admin-login-title">
+        <p class="section-kicker">Acesso protegido</p>
+        <h2 id="admin-login-title">Entrar no painel</h2>
+        <form id="admin-login-form" autocomplete="on">
+          <label class="form-field" for="admin-password">Senha administrativa
+            <input id="admin-password" name="password" type="password" autocomplete="current-password" maxlength="256" required />
+          </label>
+          <p class="admin-message" id="admin-login-message" role="alert" aria-live="polite" hidden></p>
+          <button class="button button-primary admin-action-button" id="admin-login-button" type="submit">Entrar</button>
+        </form>
+      </section>
+
+      <section class="admin-orders-section" id="admin-orders-view" aria-labelledby="admin-orders-title" hidden>
+        <div class="admin-orders-heading">
+          <div>
+            <p class="section-kicker">Consulta privada</p>
+            <h2 id="admin-orders-title">Pedidos recebidos</h2>
+          </div>
+          <div class="admin-actions">
+            <button class="admin-secondary-button" id="refresh-orders" type="button">Atualizar</button>
+            <button class="admin-secondary-button" id="admin-logout" type="button">Sair</button>
+          </div>
+        </div>
+        <p class="admin-message" id="admin-orders-message" role="status" aria-live="polite"></p>
+        <div class="admin-table-scroll">
+          <table class="admin-table">
+            <caption class="visually-hidden">Pedidos, produtos, endereços e situação da cobrança</caption>
+            <thead>
+              <tr>
+                <th scope="col">Pedido / data</th>
+                <th scope="col">Produto</th>
+                <th scope="col">Cliente</th>
+                <th scope="col">Endereço de entrega</th>
+                <th scope="col">Total</th>
+                <th scope="col">Cobrança</th>
+                <th scope="col">Pixgate</th>
+              </tr>
+            </thead>
+            <tbody id="admin-orders-body"></tbody>
+          </table>
+        </div>
+        <p class="admin-footnote">Os pedidos são listados do mais recente ao mais antigo (máximo de 200). CPF/CNPJ não é armazenado neste site. “Pendente” ou “Em conferência” não significa pagamento confirmado nem entrega concluída.</p>
+      </section>
+    </main>
+
+    <footer class="site-footer page-shell admin-footer">
+      <div class="footer-bottom">
+        <p class="health-disclaimer">Acesso restrito ao administrador autorizado.</p>
+        <p class="copyright">© 2026 Vitta Farm</p>
+      </div>
+    </footer>
+  </body>
+</html>

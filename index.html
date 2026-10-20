@@ -155,14 +155,50 @@
             <label class="form-field" for="customer-cpf">CPF ou CNPJ
               <input id="customer-cpf" name="cpf" type="text" inputmode="numeric" autocomplete="off" maxlength="18" placeholder="Somente números" required />
             </label>
-            <p class="dialog-privacy">Seu nome e CPF/CNPJ serão enviados à Pixgate para gerar a cobrança. Este site não salva esses dados.</p>
+            <div class="shipping-notice" role="note"><strong>Envio grátis</strong><span>Frete R$ 0,00 — não será acrescentado ao PIX.</span></div>
+            <fieldset class="address-fieldset">
+              <legend>Endereço para entrega</legend>
+              <div class="address-grid">
+                <div class="cep-field-group">
+                  <label class="form-field" for="customer-cep">CEP</label>
+                  <div class="cep-lookup-row">
+                    <input id="customer-cep" name="cep" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="9" placeholder="00000-000" pattern="[0-9]{5}-?[0-9]{3}" required />
+                    <button class="cep-lookup" id="lookup-cep" type="button">Buscar CEP</button>
+                  </div>
+                  <p class="cep-status" id="cep-status" role="status" aria-live="polite">O endereço será preenchido após informar um CEP válido.</p>
+                </div>
+                <label class="form-field address-field-wide" for="customer-street">Rua / avenida
+                  <input id="customer-street" name="street" type="text" autocomplete="address-line1" maxlength="180" required />
+                </label>
+                <label class="form-field" for="customer-number">Número
+                  <input id="customer-number" name="number" type="text" inputmode="text" autocomplete="off" maxlength="40" required />
+                </label>
+                <label class="form-field" for="customer-complement">Complemento (opcional)
+                  <input id="customer-complement" name="complement" type="text" autocomplete="address-line2" maxlength="120" />
+                </label>
+                <label class="form-field" for="customer-neighborhood">Bairro
+                  <input id="customer-neighborhood" name="neighborhood" type="text" autocomplete="address-level3" maxlength="120" required />
+                </label>
+                <label class="form-field" for="customer-city">Cidade
+                  <input id="customer-city" name="city" type="text" autocomplete="address-level2" maxlength="120" required />
+                </label>
+                <label class="form-field" for="customer-state">UF
+                  <input id="customer-state" name="state" type="text" autocomplete="address-level1" maxlength="2" pattern="[A-Za-z]{2}" required />
+                </label>
+              </div>
+            </fieldset>
+            <p class="dialog-privacy">Para gerar a cobrança, nome e CPF/CNPJ serão enviados à Pixgate. O endereço não será compartilhado com a Pixgate. Nome e endereço serão armazenados no banco privado do site para atender o pedido. Na busca automática, somente o CEP informado será consultado no ViaCEP.</p>
             <label class="consent-field" id="research-use-consent-row" hidden>
               <input id="research-use-consent" type="checkbox" />
               <span>Confirmo que entendo que este produto é destinado somente à pesquisa e não a consumo ou uso humano.</span>
             </label>
             <label class="consent-field">
+              <input id="delivery-consent" type="checkbox" required />
+              <span>Li o aviso e autorizo armazenar meu nome e endereço no banco privado do site exclusivamente para processar este pedido e a entrega.</span>
+            </label>
+            <label class="consent-field">
               <input id="pix-consent" type="checkbox" required />
-              <span>Autorizo o envio desses dados à Pixgate para criar a cobrança PIX.</span>
+              <span>Autorizo o envio do meu nome e CPF/CNPJ à Pixgate para criar a cobrança PIX.</span>
             </label>
             <p class="form-error" id="checkout-error" role="alert" hidden></p>
             <button class="button button-primary checkout-submit" id="checkout-submit" type="submit">Gerar PIX</button>
@@ -171,12 +207,13 @@
         <section class="pix-result" id="pix-result" aria-live="polite" hidden>
           <h2>PIX criado</h2>
           <p class="dialog-body" id="pix-status-message"></p>
-          <p class="transaction-id">Identificador: <strong id="transaction-id"></strong></p>
+          <p class="transaction-id">Pedido no site: <strong id="order-id"></strong></p>
+          <p class="transaction-id">Identificador Pixgate: <strong id="transaction-id"></strong></p>
           <label class="form-field" for="pix-code">Código PIX copia e cola
             <textarea id="pix-code" rows="5" readonly></textarea>
           </label>
           <button class="button button-primary checkout-submit" id="copy-pix" type="button">Copiar código PIX</button>
-          <p class="dialog-privacy">O status inicial é pendente. Este catálogo não acompanha o pagamento nem registra a entrega; confira a liquidação no aplicativo do banco e no painel Pixgate.</p>
+          <p class="dialog-privacy">O status inicial é pendente. O pedido e o endereço ficam disponíveis no painel privado /admin. Este catálogo não confirma automaticamente a liquidação do PIX nem acompanha a entrega.</p>
         </section>
       </div>
     </dialog>

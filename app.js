@@ -19,18 +19,37 @@ const checkoutError = document.querySelector('#checkout-error');
 const checkoutSubmit = document.querySelector('#checkout-submit');
 const checkoutResult = document.querySelector('#pix-result');
 const pixStatusMessage = document.querySelector('#pix-status-message');
+const orderIdElement = document.querySelector('#order-id');
 const transactionId = document.querySelector('#transaction-id');
 const pixCode = document.querySelector('#pix-code');
 const copyPixButton = document.querySelector('#copy-pix');
 const nameInput = document.querySelector('#customer-name');
 const cpfInput = document.querySelector('#customer-cpf');
+const cepInput = document.querySelector('#customer-cep');
+const lookupCepButton = document.querySelector('#lookup-cep');
+const cepStatus = document.querySelector('#cep-status');
+const addressInputs = {
+  street: document.querySelector('#customer-street'),
+  number: document.querySelector('#customer-number'),
+  complement: document.querySelector('#customer-complement'),
+  neighborhood: document.querySelector('#customer-neighborhood'),
+  city: document.querySelector('#customer-city'),
+  state: document.querySelector('#customer-state'),
+};
 const consentInput = document.querySelector('#pix-consent');
+const deliveryConsentInput = document.querySelector('#delivery-consent');
 const researchUseConsentRow = document.querySelector('#research-use-consent-row');
 const researchUseConsentInput = document.querySelector('#research-use-consent');
 const arrowIcon = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M10 5l5 5-5 5" /></svg>';
+const AMBIGUOUS_CHECKOUT_PREFIX = 'vitta:ambiguous-checkout:';
+const CHECKOUT_REQUEST_PREFIX = 'vitta:checkout-request:';
 
 let catalog = null;
 let selectedProduct = null;
+let checkoutRequestId = '';
+let cepLookupTimer = 0;
+let cepLookupSequence = 0;
+let lastViaCepValues = { street: '', neighborhood: '', city: '', state: '' };
 
 function formatPrice(priceCents) {
   if (!Number.isSafeInteger(priceCents) || priceCents <= 0) return 'Preço a confirmar';
@@ -39,6 +58,55 @@ function formatPrice(priceCents) {
 
 function hasPrice(product) {
   return Number.isSafeInteger(product.priceCents) && product.priceCents > 0;
+}
+
+function makeRequestId() {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+function checkoutRequestIdFor(productId) {
+  const key = `${CHECKOUT_REQUEST_PREFIX}${productId}`;
+  try {
+    const existing = sessionStorage.getItem(key) || '';
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(existing)) {
+      return existing;
+    }
+    const requestId = makeRequestId();
+    sessionStorage.setItem(key, requestId);
+    return requestId;
+  } catch {
+    return makeRequestId();
+  }
+}
+
+function clearCheckoutRequestId(productId) {
+  try {
+    sessionStorage.removeItem(`${CHECKOUT_REQUEST_PREFIX}${productId}`);
+  } catch {
+    // A tentativa atual permanece protegida pela chave mantida em memória.
+  }
+}
+
+function ambiguousCheckout(productId) {
+  try {
+    return sessionStorage.getItem(`${AMBIGUOUS_CHECKOUT_PREFIX}${productId}`) || '';
+  } catch {
+    return '';
+  }
+}
+
+function rememberAmbiguousCheckout(productId, orderId = '') {
+  try {
+    sessionStorage.setItem(`${AMBIGUOUS_CHECKOUT_PREFIX}${productId}`, orderId || 'verificar');
+  } catch {
+    // A trava de repetição em memória continua valendo até a página ser fechada.
+  }
 }
 
 function appendSource(source) {
@@ -78,9 +146,19 @@ function openProductInfo(product) {
   infoDialog.showModal();
 }
 
+function setCheckoutError(message, retrySafe = true, productId = '', orderId = '') {
+  checkoutError.textContent = message;
+  checkoutError.hidden = false;
+  checkoutSubmit.disabled = retrySafe !== true;
+  checkoutSubmit.textContent = retrySafe === true ? 'Tentar novamente' : 'Verifique antes de repetir';
+  if (retrySafe !== true && productId) rememberAmbiguousCheckout(productId, orderId);
+}
+
 function openCheckout(product) {
   if (!hasPrice(product)) return;
   selectedProduct = product;
+  checkoutRequestId = checkoutRequestIdFor(product.id);
+  lastViaCepValues = { street: '', neighborhood: '', city: '', state: '' };
   checkoutForm.reset();
   checkoutError.hidden = true;
   checkoutError.textContent = '';
@@ -88,15 +166,32 @@ function openCheckout(product) {
   checkoutResult.hidden = true;
   checkoutSubmit.disabled = false;
   checkoutSubmit.textContent = 'Gerar PIX';
+  lookupCepButton.disabled = false;
+  cepStatus.textContent = 'O endereço será preenchido após informar um CEP válido.';
   copyPixButton.textContent = 'Copiar código PIX';
+  pixCode.value = '';
+  orderIdElement.textContent = '';
+  transactionId.textContent = '';
   checkoutProductName.textContent = `${product.name} · ${product.dose}`;
   const packageText = product.packageCount ? `Conteúdo da caixa: ${product.packageCount}` : 'Conteúdo da caixa a confirmar';
   const priceUnit = product.priceUnit ? `por ${product.priceUnit}` : 'por caixa';
-  checkoutProductSummary.textContent = `${packageText}. Valor: ${formatPrice(product.priceCents)} ${priceUnit}.`;
+  const total = formatPrice(product.priceCents);
+  checkoutProductSummary.textContent = `${packageText}. Valor: ${total} ${priceUnit}. Envio grátis. Total do pedido: ${total}.`;
   checkoutPackageWarning.textContent = product.packageNote || '';
   checkoutPackageWarning.hidden = product.packageConfidence === 'official';
   researchUseConsentRow.hidden = !product.researchUseOnly;
   researchUseConsentInput.required = Boolean(product.researchUseOnly);
+
+  const previousUncertainOrder = ambiguousCheckout(product.id);
+  if (previousUncertainOrder) {
+    setCheckoutError(
+      `Uma solicitação anterior pode ter criado uma cobrança${previousUncertainOrder === 'verificar' ? '' : ` (pedido ${previousUncertainOrder})`}. Confira no painel Pixgate antes de tentar novamente.`,
+      false,
+      product.id,
+      previousUncertainOrder,
+    );
+  }
+
   checkoutDialog.showModal();
   nameInput.focus();
 }
@@ -143,7 +238,10 @@ function addProductCard(product, index) {
   const price = document.createElement('strong');
   price.className = 'product-price';
   price.textContent = formatPrice(product.priceCents);
-  priceInfo.append(priceLabel, price);
+  const shipping = document.createElement('span');
+  shipping.className = 'product-shipping-badge';
+  shipping.textContent = 'Envio grátis';
+  priceInfo.append(priceLabel, price, shipping);
   priceBlock.append(priceInfo);
 
   const actions = document.createElement('div');
@@ -205,6 +303,68 @@ function statusLabel(value) {
   return status === 'PENDING' ? 'Pendente' : status;
 }
 
+function currentCepDigits() {
+  return cepInput.value.replace(/\D/g, '');
+}
+
+function fillFromViaCep(key, value) {
+  const input = addressInputs[key];
+  const previousValue = lastViaCepValues[key];
+  const newValue = typeof value === 'string' ? value.trim() : '';
+  if (!newValue) return;
+  if (!input.value.trim() || input.value.trim() === previousValue) input.value = newValue;
+  lastViaCepValues[key] = newValue;
+}
+
+async function lookupCep() {
+  const digits = currentCepDigits();
+  if (!/^\d{8}$/.test(digits)) {
+    cepStatus.textContent = 'Digite um CEP válido com 8 números.';
+    cepInput.focus();
+    return;
+  }
+
+  const requestSequence = ++cepLookupSequence;
+  lookupCepButton.disabled = true;
+  cepStatus.textContent = 'Consultando o CEP…';
+  try {
+    const response = await fetch(`https://viacep.com.br/ws/${digits}/json/`, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(7000),
+    });
+    if (!response.ok) throw new Error('Não foi possível consultar o CEP agora.');
+    const data = await response.json();
+    if (requestSequence !== cepLookupSequence || currentCepDigits() !== digits) return;
+    if (data.erro) {
+      cepStatus.textContent = 'CEP não encontrado. Confira o número e preencha o endereço manualmente.';
+      return;
+    }
+
+    fillFromViaCep('street', data.logradouro || '');
+    fillFromViaCep('neighborhood', data.bairro || '');
+    fillFromViaCep('city', data.localidade || '');
+    fillFromViaCep('state', data.uf || '');
+    cepStatus.textContent = 'CEP encontrado. Revise o endereço; os campos permanecem editáveis.';
+  } catch {
+    if (requestSequence === cepLookupSequence) {
+      cepStatus.textContent = 'Não foi possível consultar o CEP. Preencha ou revise o endereço manualmente.';
+    }
+  } finally {
+    if (requestSequence === cepLookupSequence) lookupCepButton.disabled = false;
+  }
+}
+
+function scheduleCepLookup() {
+  window.clearTimeout(cepLookupTimer);
+  const digits = currentCepDigits();
+  if (digits.length !== 8) {
+    cepStatus.textContent = digits.length ? 'Digite os 8 números do CEP para buscar o endereço.' : 'O endereço será preenchido após informar um CEP válido.';
+    return;
+  }
+  cepStatus.textContent = 'CEP completo. Buscando endereço…';
+  cepLookupTimer = window.setTimeout(lookupCep, 250);
+}
+
 async function submitCheckout(event) {
   event.preventDefault();
   checkoutError.hidden = true;
@@ -215,70 +375,92 @@ async function submitCheckout(event) {
   const nome = nameInput.value.trim().replace(/\s+/g, ' ');
   const cpf = cpfInput.value.replace(/\D/g, '');
   if (nome.split(' ').filter(Boolean).length < 2) {
-    checkoutError.textContent = 'Informe seu nome completo.';
-    checkoutError.hidden = false;
+    setCheckoutError('Informe seu nome completo.');
     nameInput.focus();
     return;
   }
   if (![11, 14].includes(cpf.length)) {
-    checkoutError.textContent = 'Informe um CPF ou CNPJ com 11 ou 14 números.';
-    checkoutError.hidden = false;
+    setCheckoutError('Informe um CPF ou CNPJ com 11 ou 14 números.');
     cpfInput.focus();
     return;
   }
+  if (!deliveryConsentInput.checked) {
+    setCheckoutError('Autorize o armazenamento do nome e endereço para processar a entrega.');
+    deliveryConsentInput.focus();
+    return;
+  }
   if (!consentInput.checked) {
-    checkoutError.textContent = 'Confirme o envio dos dados à Pixgate para gerar o PIX.';
-    checkoutError.hidden = false;
+    setCheckoutError('Confirme o envio do nome e CPF/CNPJ à Pixgate para gerar o PIX.');
     consentInput.focus();
     return;
   }
   if (selectedProduct.researchUseOnly && !researchUseConsentInput.checked) {
-    checkoutError.textContent = 'Confirme que entendeu que este produto é destinado somente à pesquisa e não ao uso humano.';
-    checkoutError.hidden = false;
+    setCheckoutError('Confirme que entendeu que este produto é destinado somente à pesquisa e não ao uso humano.');
     researchUseConsentInput.focus();
     return;
   }
 
+  const address = {
+    cep: cepInput.value.trim(),
+    street: addressInputs.street.value.trim(),
+    number: addressInputs.number.value.trim(),
+    complement: addressInputs.complement.value.trim(),
+    neighborhood: addressInputs.neighborhood.value.trim(),
+    city: addressInputs.city.value.trim(),
+    state: addressInputs.state.value.trim().toUpperCase(),
+  };
+
   checkoutSubmit.disabled = true;
-  checkoutSubmit.textContent = 'Gerando PIX…';
+  checkoutSubmit.textContent = 'Registrando pedido…';
   try {
     const response = await fetch('/api/cashin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      cache: 'no-store',
       body: JSON.stringify({
         productId: selectedProduct.id,
+        checkoutRequestId,
         nome,
         cpf,
         device: detectDevice(),
-        consent: true,
-        ...(selectedProduct.researchUseOnly ? { researchUseConsent: true } : {}),
+        consent: consentInput.checked,
+        deliveryConsent: deliveryConsentInput.checked,
+        address,
+        ...(selectedProduct.researchUseOnly ? { researchUseConsent: researchUseConsentInput.checked } : {}),
       }),
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok) {
       const reference = result.transactionId ? ` Referência Pixgate: ${result.transactionId}.` : '';
-      const error = new Error(`${result.error || 'Não foi possível gerar o PIX agora.'}${reference}`);
-      error.retrySafe = response.status >= 400 && response.status < 500;
+      const error = new Error(`${result.error || 'Não foi possível registrar o pedido agora.'}${reference}`);
+      error.retrySafe = result.retrySafe === true;
+      error.orderId = result.orderId || '';
       throw error;
     }
-    if (!result.pix) {
-      const error = new Error('A resposta da Pixgate não trouxe o código PIX. Verifique o status antes de tentar novamente, para evitar duplicidade.');
+    if (!result.pix || !result.orderId || !result.transactionId) {
+      const error = new Error('A resposta não confirmou o pedido e o código PIX. Não tente novamente até verificar a cobrança.');
       error.retrySafe = false;
+      error.orderId = result.orderId || '';
       throw error;
     }
 
+    clearCheckoutRequestId(selectedProduct.id);
     checkoutFormView.hidden = true;
     checkoutResult.hidden = false;
     const value = Number(result.value);
     const chargedAmount = Number.isFinite(value) ? money.format(value) : formatPrice(selectedProduct.priceCents);
-    pixStatusMessage.textContent = `Cobrança de ${chargedAmount} criada. Status atual: ${statusLabel(result.status)}. Use o código no aplicativo do seu banco.`;
-    transactionId.textContent = result.transactionId || 'Não informado';
+    pixStatusMessage.textContent = `Pedido registrado. Cobrança de ${chargedAmount} criada, com envio grátis. Status atual: ${statusLabel(result.status)}. Use o código no aplicativo do seu banco.`;
+    orderIdElement.textContent = result.orderId;
+    transactionId.textContent = result.transactionId;
     pixCode.value = result.pix;
   } catch (error) {
-    checkoutError.textContent = error.message || 'Não foi possível gerar o PIX agora. Tente novamente mais tarde.';
-    checkoutError.hidden = false;
-    checkoutSubmit.disabled = error.retrySafe !== true;
-    checkoutSubmit.textContent = error.retrySafe === true ? 'Tentar novamente' : 'Verifique antes de repetir';
+    const canRetry = error.retrySafe === true;
+    setCheckoutError(
+      error.message || 'Não foi possível confirmar o pedido. Confira antes de tentar novamente.',
+      canRetry,
+      selectedProduct.id,
+      error.orderId || '',
+    );
   }
 }
 
@@ -325,6 +507,8 @@ async function loadCatalog() {
     window.addEventListener('resize', updateCarousel);
     checkoutForm.addEventListener('submit', submitCheckout);
     copyPixButton.addEventListener('click', copyPixCode);
+    lookupCepButton.addEventListener('click', lookupCep);
+    cepInput.addEventListener('input', scheduleCepLookup);
     bindDialogControls();
     updateCarousel();
   } catch {
