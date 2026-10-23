@@ -25,6 +25,7 @@
         <nav class="main-nav" aria-label="Navegação principal">
           <a href="#produtos">Produtos</a>
           <a href="#duvidas">Dúvidas</a>
+          <a href="/conta">Minha conta</a>
         </nav>
         <a class="header-contact" href="https://wa.me/5545991013749?text=Ol%C3%A1%2C%20Vitta%20Farm!%20Tenho%20uma%20d%C3%BAvida%20sobre%20um%20produto." target="_blank" rel="noopener noreferrer">
           <span>WhatsApp para dúvidas</span>
@@ -155,6 +156,16 @@
             <label class="form-field" for="customer-cpf">CPF ou CNPJ
               <input id="customer-cpf" name="cpf" type="text" inputmode="numeric" autocomplete="off" maxlength="18" placeholder="Somente números" required />
             </label>
+            <label class="form-field" for="customer-email">E-mail para sua conta e acompanhamento
+              <input id="customer-email" name="email" type="email" autocomplete="email" maxlength="254" required />
+            </label>
+            <label class="form-field" for="customer-password">Senha (mínimo 12 caracteres)
+              <input id="customer-password" name="password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required />
+            </label>
+            <label class="form-field" for="customer-password-confirmation">Confirme sua senha
+              <input id="customer-password-confirmation" name="passwordConfirmation" type="password" autocomplete="new-password" minlength="12" maxlength="128" required />
+            </label>
+            <p class="account-checkout-hint">Na primeira compra, seu acesso será criado. Se já tem conta, use a mesma senha. <a href="/conta">Entrar pela minha conta</a></p>
             <div class="shipping-notice" role="note"><strong>Envio grátis</strong><span>Frete R$ 0,00 — não será acrescentado ao PIX.</span></div>
             <fieldset class="address-fieldset">
               <legend>Endereço para entrega</legend>
@@ -187,7 +198,7 @@
                 </label>
               </div>
             </fieldset>
-            <p class="dialog-privacy">Para gerar a cobrança, nome e CPF/CNPJ serão enviados à Pixgate. O endereço não será compartilhado com a Pixgate. Nome e endereço serão armazenados no banco privado do site para atender o pedido. Na busca automática, somente o CEP informado será consultado no ViaCEP.</p>
+            <p class="dialog-privacy">Para gerar a cobrança, nome e CPF/CNPJ serão enviados à Pixgate. Seu e-mail será armazenado para login e acompanhamento dos pedidos; a senha será protegida por hash e nunca salva em texto aberto. Nome e endereço serão armazenados para atender o pedido. Endereço e senha não são enviados à Pixgate. Na busca automática, somente o CEP informado será consultado no ViaCEP.</p>
             <label class="consent-field" id="research-use-consent-row" hidden>
               <input id="research-use-consent" type="checkbox" />
               <span>Confirmo que entendo que este produto é destinado somente à pesquisa e não a consumo ou uso humano.</span>
@@ -195,6 +206,10 @@
             <label class="consent-field">
               <input id="delivery-consent" type="checkbox" required />
               <span>Li o aviso e autorizo armazenar meu nome e endereço no banco privado do site exclusivamente para processar este pedido e a entrega.</span>
+            </label>
+            <label class="consent-field">
+              <input id="account-consent" type="checkbox" required />
+              <span>Autorizo armazenar meu e-mail para criar ou acessar minha conta e acompanhar meus pedidos. Minha senha será armazenada somente como hash protegido.</span>
             </label>
             <label class="consent-field">
               <input id="pix-consent" type="checkbox" required />
@@ -207,13 +222,19 @@
         <section class="pix-result" id="pix-result" aria-live="polite" hidden>
           <h2>PIX criado</h2>
           <p class="dialog-body" id="pix-status-message"></p>
+          <figure class="pix-qr-figure" id="pix-qr-figure" hidden>
+            <img id="pix-qr-image" alt="QR Code PIX da cobrança" width="280" height="280" />
+            <figcaption>Escaneie o QR Code no aplicativo do seu banco.</figcaption>
+          </figure>
           <p class="transaction-id">Pedido no site: <strong id="order-id"></strong></p>
           <p class="transaction-id">Identificador Pixgate: <strong id="transaction-id"></strong></p>
           <label class="form-field" for="pix-code">Código PIX copia e cola
             <textarea id="pix-code" rows="5" readonly></textarea>
           </label>
           <button class="button button-primary checkout-submit" id="copy-pix" type="button">Copiar código PIX</button>
-          <p class="dialog-privacy">O status inicial é pendente. O pedido e o endereço ficam disponíveis no painel privado /admin. Este catálogo não confirma automaticamente a liquidação do PIX nem acompanha a entrega.</p>
+          <button class="button button-secondary checkout-submit" id="check-payment" type="button">Já paguei — verificar status</button>
+          <p class="dialog-privacy" id="payment-check-message">A confirmação vem automaticamente da Pixgate. Este botão apenas consulta o status; não confirma o pagamento por declaração.</p>
+          <p class="account-checkout-hint">Sua conta permanece conectada. <a href="/conta">Acompanhar pedidos em Minha conta</a>.</p>
         </section>
       </div>
     </dialog>
