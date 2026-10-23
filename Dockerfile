@@ -14,4 +14,4 @@ ENV ORDERS_WRITE_ENABLED=true
 ENV ORDERS_ADMIN_ENABLED=true
 EXPOSE 3000
 USER node
-CMD ["node", "server.js"]
+CMD ["sh", "-c", "node scripts/migrate.js && node server.js"]
