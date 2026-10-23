@@ -3,7 +3,7 @@ FROM node:22-alpine
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN corepack enable && corepack prepare pnpm@11.25.0 --activate && pnpm install --prod --frozen-lockfile
-COPY --chown=node:node server.js catalog.json index.html admin.html admin.js app.js styles.css manus-routes.json ./
+COPY --chown=node:node server.js catalog.json index.html admin.html admin.js account.html account.js app.js styles.css manus-routes.json ./
 COPY --chown=node:node src ./src
 COPY --chown=node:node images ./images
 COPY --chown=node:node migrations ./migrations

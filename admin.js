@@ -66,7 +66,7 @@ function addressLabel(address) {
 
 function statusLabel(status) {
   const normalized = String(status || 'UNKNOWN').toUpperCase();
-  const labels = { CREATING: 'Em conferência', PENDING: 'Pendente', UNKNOWN: 'Verificar manualmente' };
+  const labels = { CREATING: 'Em conferência', PENDING: 'Pendente', UNKNOWN: 'Verificar manualmente', PAID: 'Pagamento confirmado' };
   return labels[normalized] || 'Verificar manualmente';
 }
 

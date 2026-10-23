@@ -3,7 +3,25 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const catalog = require('./catalog.json');
 const { getPool, pingDatabase, closePool } = require('./src/database');
-const { markOrderPaidByTransactionId, processCheckout, listOrders } = require('./src/orders');
+const {
+  getCustomerOrderStatus,
+  listCustomerOrders,
+  markOrderPaidByTransactionId,
+  processCheckout,
+  listOrders,
+} = require('./src/orders');
+const { validateCheckout } = require('./src/validation');
+const {
+  CustomerAuthError,
+  authenticateCustomer,
+  createCustomerSession,
+  customerSessionCookie,
+  deleteCustomerSession,
+  expiredCustomerSessionCookie,
+  getCustomerForSession,
+  newCustomerSessionToken,
+  readCustomerSessionToken,
+} = require('./src/customer-auth');
 const {
   createSession,
   deleteSession,
@@ -21,7 +39,7 @@ const PORT = Number(process.env.PORT) || 3000;
 const MAX_BODY_BYTES = 16 * 1024;
 const PRODUCTS = Object.freeze(Object.fromEntries(catalog.products.map((product) => [product.id, product])));
 const SHIPPING_CENTS = 0;
-const publicRootFiles = new Set(['index.html', 'styles.css', 'app.js', 'admin.js', 'catalog.json', 'manus-routes.json']);
+const publicRootFiles = new Set(['index.html', 'styles.css', 'app.js', 'admin.js', 'account.html', 'account.js', 'catalog.json', 'manus-routes.json']);
 const publicImagePath = /^images\/[a-z0-9._-]+\.(?:png|jpe?g|svg|webp)$/i;
 const loginFailures = new Map();
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
@@ -138,6 +156,13 @@ async function handleCashIn(req, res) {
   if (!process.env.PIXGATE_API_KEY) {
     return sendJson(res, 503, { error: 'A cobrança PIX está temporariamente indisponível.', retrySafe: true });
   }
+  const postbackUrl = pixgatePostbackUrl();
+  if (typeof postbackUrl !== 'string' || !postbackUrl.startsWith('https://')) {
+    return sendJson(res, 503, { error: 'A confirmação automática do PIX ainda não está configurada. Defina uma URL pública HTTPS para o webhook.', retrySafe: true });
+  }
+
+  const validation = validateCheckout(body, PRODUCTS, SHIPPING_CENTS);
+  if (!validation.ok) return sendJson(res, 400, { error: validation.error, retrySafe: true });
 
   let pool;
   try {
@@ -146,13 +171,44 @@ async function handleCashIn(req, res) {
     return sendJson(res, 503, { error: 'O serviço de pedidos está temporariamente indisponível.', retrySafe: true });
   }
 
+  const key = `customer:${clientKey(req)}`;
+  const delay = remainingLoginDelay(key);
+  if (delay > 0) {
+    return sendJson(res, 429, { error: 'Muitas tentativas de acesso. Aguarde antes de tentar novamente.', retrySafe: true }, { 'Retry-After': String(delay) });
+  }
+
+  let customer;
+  try {
+    customer = await authenticateCustomer(pool, {
+      email: validation.value.email,
+      password: body.password,
+      displayName: validation.value.nome,
+      allowCreate: true,
+    });
+  } catch (error) {
+    if (error instanceof CustomerAuthError && error.code === 'INVALID_CREDENTIALS') {
+      recordLoginFailure(key);
+      return sendJson(res, 401, { error: 'Não foi possível criar a conta ou entrar. Confira o e-mail e a senha.', retrySafe: true });
+    }
+    return sendJson(res, 503, { error: 'Não foi possível validar sua conta agora.', retrySafe: true });
+  }
+
+  const sessionToken = newCustomerSessionToken();
+  try {
+    await createCustomerSession(pool, customer.id, sessionToken);
+    clearLoginFailures(key);
+  } catch {
+    return sendJson(res, 503, { error: 'Sua conta foi validada, mas não foi possível iniciar a sessão agora.', retrySafe: true });
+  }
+
   const result = await processCheckout({
     pool,
     body,
     products: PRODUCTS,
+    customerId: customer.id,
     shippingCents: SHIPPING_CENTS,
     apiKey: process.env.PIXGATE_API_KEY,
-    postbackUrl: pixgatePostbackUrl(),
+    postbackUrl,
     ordersEnabled: isOrdersEnabled(),
     pixgateEnabled: process.env.PIXGATE_LIVE_CASHIN === 'true',
   }).catch(() => ({
@@ -160,10 +216,10 @@ async function handleCashIn(req, res) {
     body: { error: 'O serviço de pedidos está temporariamente indisponível.', retrySafe: true },
   }));
 
-  return sendJson(res, result.statusCode, result.body);
+  return sendJson(res, result.statusCode, result.body, { 'Set-Cookie': customerSessionCookie(sessionToken) });
 }
 
-async function handlePixgateWebhook(req, res) {
+async function handlePixgateWebhook(req, res, requestUrl) {
   let body;
   try {
     body = await readJson(req);
@@ -174,13 +230,15 @@ async function handlePixgateWebhook(req, res) {
   const event = String(body.event || '').toLowerCase();
   const status = String(body.status || '').toUpperCase();
   const transactionId = body.transaction_id || body.id;
-  if (event !== 'transaction.paid' || status !== 'PAID' || !transactionId) {
+  const tokens = requestUrl.searchParams.getAll('token');
+  if (event !== 'transaction.paid' || status !== 'PAID' || !transactionId || tokens.length !== 1) {
     return sendJson(res, 400, { error: 'Notificação Pixgate inválida.' });
   }
 
   try {
-    const updated = await markOrderPaidByTransactionId(getPool(), transactionId);
-    return sendJson(res, 200, { received: true, updated });
+    const result = await markOrderPaidByTransactionId(getPool(), transactionId, tokens[0]);
+    if (!result.known) return sendJson(res, 403, { error: 'Notificação Pixgate não autenticada.' });
+    return sendJson(res, 200, { received: true, updated: result.updated });
   } catch {
     return sendJson(res, 503, { error: 'Não foi possível processar a confirmação agora.' });
   }
@@ -200,6 +258,112 @@ async function requireAdmin(req, res, pool) {
   }
   sendJson(res, 401, { error: 'Sessão expirada. Entre novamente.' }, { 'Set-Cookie': expiredSessionCookie() });
   return false;
+}
+
+async function handleCustomer(req, res, pathname) {
+  if (pathname === '/api/customer/login') {
+    if (req.method !== 'POST') {
+      res.setHeader('Allow', 'POST');
+      return sendJson(res, 405, { error: 'Use POST para entrar.' });
+    }
+
+    const key = `customer:${clientKey(req)}`;
+    const delay = remainingLoginDelay(key);
+    if (delay > 0) return sendJson(res, 429, { error: 'Muitas tentativas. Aguarde antes de tentar novamente.' }, { 'Retry-After': String(delay) });
+
+    let body;
+    try {
+      body = await readJson(req);
+    } catch (error) {
+      return sendJson(res, error.statusCode || 400, { error: error.message });
+    }
+    if (Object.keys(body).some((field) => !['email', 'password'].includes(field))) {
+      return sendJson(res, 400, { error: 'O formulário contém campos não permitidos.' });
+    }
+
+    let pool;
+    let customer;
+    try {
+      pool = getPool();
+      customer = await authenticateCustomer(pool, { email: body.email, password: body.password, allowCreate: false });
+    } catch (error) {
+      if (error instanceof CustomerAuthError && error.code === 'INVALID_CREDENTIALS') {
+        recordLoginFailure(key);
+        return sendJson(res, 401, { error: 'E-mail ou senha inválidos.' });
+      }
+      return sendJson(res, 503, { error: 'Não foi possível entrar na sua conta agora.' });
+    }
+
+    try {
+      const priorToken = readCustomerSessionToken(req);
+      if (priorToken) await deleteCustomerSession(pool, priorToken);
+      const token = await createCustomerSession(pool, customer.id, newCustomerSessionToken());
+      clearLoginFailures(key);
+      return sendJson(res, 200, {
+        authenticated: true,
+        customer: { email: customer.email, displayName: customer.displayName },
+      }, { 'Set-Cookie': customerSessionCookie(token) });
+    } catch {
+      return sendJson(res, 503, { error: 'Não foi possível iniciar sua sessão agora.' });
+    }
+  }
+
+  if (pathname === '/api/customer/logout') {
+    if (req.method !== 'POST') {
+      res.setHeader('Allow', 'POST');
+      return sendJson(res, 405, { error: 'Use POST para sair.' });
+    }
+    try {
+      await deleteCustomerSession(getPool(), readCustomerSessionToken(req));
+    } catch {
+      // O cookie será removido mesmo se a sessão não puder ser consultada.
+    }
+    return sendJson(res, 200, { authenticated: false }, { 'Set-Cookie': expiredCustomerSessionCookie() });
+  }
+
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    return sendJson(res, 405, { error: 'Use GET para consultar sua conta.' });
+  }
+
+  let pool;
+  let customer;
+  try {
+    pool = getPool();
+    customer = await getCustomerForSession(pool, readCustomerSessionToken(req));
+  } catch {
+    return sendJson(res, 503, { error: 'Não foi possível validar sua sessão agora.' });
+  }
+  if (!customer) {
+    return sendJson(res, 401, { authenticated: false }, { 'Set-Cookie': expiredCustomerSessionCookie() });
+  }
+
+  if (pathname === '/api/customer/session') {
+    return sendJson(res, 200, {
+      authenticated: true,
+      customer: { email: customer.email, displayName: customer.display_name },
+    });
+  }
+  if (pathname === '/api/customer/orders') {
+    try {
+      return sendJson(res, 200, { orders: await listCustomerOrders(pool, customer.id) });
+    } catch {
+      return sendJson(res, 503, { error: 'Não foi possível consultar seus pedidos agora.' });
+    }
+  }
+
+  const orderMatch = pathname.match(/^\/api\/customer\/orders\/([0-9a-f-]{36})$/i);
+  if (orderMatch) {
+    try {
+      const order = await getCustomerOrderStatus(pool, customer.id, orderMatch[1]);
+      return order
+        ? sendJson(res, 200, { order })
+        : sendJson(res, 404, { error: 'Pedido não encontrado.' });
+    } catch {
+      return sendJson(res, 503, { error: 'Não foi possível consultar o pagamento agora.' });
+    }
+  }
+  return sendJson(res, 404, { error: 'Não encontrado.' });
 }
 
 async function handleAdmin(req, res, pathname) {
@@ -330,6 +494,7 @@ async function serveStatic(req, res, pathname) {
     }
     return serveFile(req, res, 'admin.html', true);
   }
+  if (decodedPath === '/conta') return serveFile(req, res, 'account.html', true);
 
   const relativePath = decodedPath === '/' ? 'index.html' : decodedPath.replace(/^\/+/, '');
   if (!publicRootFiles.has(relativePath) && !publicImagePath.test(relativePath)) {
@@ -368,7 +533,15 @@ function createServer() {
         res.setHeader('Allow', 'POST');
         return sendJson(res, 405, { error: 'Use POST para confirmar a transação Pixgate.' });
       }
-      return handlePixgateWebhook(req, res);
+      return handlePixgateWebhook(req, res, requestUrl);
+    }
+
+    if (pathname.startsWith('/api/customer/')) {
+      try {
+        return await handleCustomer(req, res, pathname);
+      } catch {
+        return sendJson(res, 503, { error: 'O serviço de conta está temporariamente indisponível.' });
+      }
     }
 
     if (pathname.startsWith('/api/admin/')) {

@@ -1,8 +1,9 @@
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const ADDRESS_KEYS = new Set(['cep', 'street', 'number', 'complement', 'neighborhood', 'city', 'state']);
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CHECKOUT_KEYS = new Set([
-  'productId', 'checkoutRequestId', 'nome', 'cpf', 'device', 'consent',
-  'deliveryConsent', 'researchUseConsent', 'address',
+  'productId', 'checkoutRequestId', 'nome', 'cpf', 'email', 'password', 'passwordConfirmation', 'device', 'consent',
+  'accountConsent', 'deliveryConsent', 'researchUseConsent', 'address',
 ]);
 
 function hasRepeatedDigits(value) {
@@ -79,8 +80,16 @@ function validateCheckout(body, products, shippingCents = 0) {
   const cpf = body.cpf.replace(/\D/g, '');
   if (!isValidCpfOrCnpj(cpf)) return invalid('Informe um CPF ou CNPJ válido, somente com números.');
 
+  const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+  if (email.length > 254 || !EMAIL_PATTERN.test(email)) return invalid('Informe um e-mail válido para sua conta.');
+  if (typeof body.password !== 'string' || body.password.length < 12 || body.password.length > 128) {
+    return invalid('Crie uma senha com pelo menos 12 caracteres.');
+  }
+  if (body.passwordConfirmation !== body.password) return invalid('A confirmação da senha não corresponde.');
+
   if (!['android', 'ios', 'web'].includes(body.device)) return invalid('Não foi possível identificar o dispositivo. Atualize a página.');
   if (body.consent !== true) return invalid('Confirme o envio dos dados necessários à cobrança PIX.');
+  if (body.accountConsent !== true) return invalid('Autorize o uso do e-mail para criar sua conta e acompanhar os pedidos.');
   if (body.deliveryConsent !== true) return invalid('Confirme o armazenamento dos dados de entrega para registrar o pedido.');
   if (product.researchUseOnly && body.researchUseConsent !== true) {
     return invalid('Confirme que entendeu que este produto é destinado somente à pesquisa e não ao uso humano.');
@@ -118,6 +127,7 @@ function validateCheckout(body, products, shippingCents = 0) {
       product,
       nome: name,
       cpf,
+      email,
       device: body.device,
       address: {
         cep,

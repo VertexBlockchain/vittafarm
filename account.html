@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f6f6ef" />
+    <meta name="description" content="Entre na sua conta Vitta Farm para acompanhar seus pedidos." />
+    <title>Minha conta | Vitta Farm</title>
+    <link rel="icon" href="./images/vitta-mark.png" type="image/png" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./account.js" defer></script>
+  </head>
+  <body class="account-page">
+    <div class="announcement-bar">
+      <span class="announcement-dot" aria-hidden="true"></span>
+      <span>Vitta Farm / Minha conta</span>
+    </div>
+    <header class="site-header">
+      <div class="header-inner page-shell">
+        <a class="brand" href="/" aria-label="Vitta Farm — início">
+          <img class="brand-mark" src="./images/vitta-mark.png" alt="" width="38" height="38" />
+          <span class="brand-name"><strong>Vitta</strong><span>FARM</span></span>
+        </a>
+        <a class="header-contact" href="/">Voltar ao catálogo</a>
+      </div>
+    </header>
+    <main class="account-shell page-shell">
+      <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> Acompanhamento de pedidos</p>
+      <h1>Minha conta</h1>
+      <p class="account-intro">Entre com o e-mail e a senha usados no checkout para acompanhar seus pedidos.</p>
+
+      <section class="account-card" id="account-login-panel" aria-labelledby="account-login-title">
+        <h2 id="account-login-title">Entrar na conta</h2>
+        <form id="account-login-form" autocomplete="on">
+          <label class="form-field" for="account-email">E-mail
+            <input id="account-email" name="email" type="email" autocomplete="email" maxlength="254" required />
+          </label>
+          <label class="form-field" for="account-password">Senha
+            <input id="account-password" name="password" type="password" autocomplete="current-password" minlength="12" maxlength="128" required />
+          </label>
+          <p class="account-message" id="account-login-message" role="alert" aria-live="polite" hidden></p>
+          <button class="button button-primary account-action" id="account-login-button" type="submit">Entrar</button>
+        </form>
+        <p class="account-footnote">Ainda não tem conta? Crie seu acesso durante o checkout, informando e-mail e uma senha com pelo menos 12 caracteres.</p>
+      </section>
+
+      <section class="account-card" id="account-orders-panel" aria-labelledby="account-orders-title" hidden>
+        <div class="account-orders-heading">
+          <div>
+            <p class="section-kicker" id="account-email-label"></p>
+            <h2 id="account-orders-title">Seus pedidos</h2>
+          </div>
+          <button class="account-logout" id="account-logout" type="button">Sair</button>
+        </div>
+        <p class="account-message" id="account-orders-message" role="status" aria-live="polite" hidden></p>
+        <div class="account-order-list" id="account-order-list"></div>
+      </section>
+      <a class="account-back-link" href="/">← Voltar ao catálogo</a>
+    </main>
+  </body>
+</html>

@@ -23,8 +23,15 @@ const orderIdElement = document.querySelector('#order-id');
 const transactionId = document.querySelector('#transaction-id');
 const pixCode = document.querySelector('#pix-code');
 const copyPixButton = document.querySelector('#copy-pix');
+const pixQrFigure = document.querySelector('#pix-qr-figure');
+const pixQrImage = document.querySelector('#pix-qr-image');
+const checkPaymentButton = document.querySelector('#check-payment');
+const paymentCheckMessage = document.querySelector('#payment-check-message');
 const nameInput = document.querySelector('#customer-name');
 const cpfInput = document.querySelector('#customer-cpf');
+const emailInput = document.querySelector('#customer-email');
+const passwordInput = document.querySelector('#customer-password');
+const passwordConfirmationInput = document.querySelector('#customer-password-confirmation');
 const cepInput = document.querySelector('#customer-cep');
 const lookupCepButton = document.querySelector('#lookup-cep');
 const cepStatus = document.querySelector('#cep-status');
@@ -37,6 +44,7 @@ const addressInputs = {
   state: document.querySelector('#customer-state'),
 };
 const consentInput = document.querySelector('#pix-consent');
+const accountConsentInput = document.querySelector('#account-consent');
 const deliveryConsentInput = document.querySelector('#delivery-consent');
 const researchUseConsentRow = document.querySelector('#research-use-consent-row');
 const researchUseConsentInput = document.querySelector('#research-use-consent');
@@ -47,6 +55,7 @@ const CHECKOUT_REQUEST_PREFIX = 'vitta:checkout-request:';
 let catalog = null;
 let selectedProduct = null;
 let checkoutRequestId = '';
+let currentOrderId = '';
 let cepLookupTimer = 0;
 let cepLookupSequence = 0;
 let lastViaCepValues = { street: '', neighborhood: '', city: '', state: '' };
@@ -170,6 +179,12 @@ function openCheckout(product) {
   cepStatus.textContent = 'O endereço será preenchido após informar um CEP válido.';
   copyPixButton.textContent = 'Copiar código PIX';
   pixCode.value = '';
+  pixQrImage.removeAttribute('src');
+  pixQrFigure.hidden = true;
+  currentOrderId = '';
+  checkPaymentButton.disabled = false;
+  checkPaymentButton.textContent = 'Já paguei — verificar status';
+  paymentCheckMessage.textContent = 'A confirmação vem automaticamente da Pixgate. Este botão apenas consulta o status; não confirma o pagamento por declaração.';
   orderIdElement.textContent = '';
   transactionId.textContent = '';
   checkoutProductName.textContent = `${product.name} · ${product.dose}`;
@@ -300,7 +315,11 @@ function detectDevice() {
 
 function statusLabel(value) {
   const status = String(value || 'PENDING').toUpperCase();
-  return status === 'PENDING' ? 'Pendente' : status;
+  if (status === 'PAID') return 'Pagamento confirmado';
+  if (status === 'PENDING') return 'Pendente';
+  if (status === 'UNKNOWN') return 'Em conferência';
+  if (status === 'CREATING') return 'Gerando cobrança';
+  return status;
 }
 
 function currentCepDigits() {
@@ -389,6 +408,26 @@ async function submitCheckout(event) {
     cpfInput.focus();
     return;
   }
+  if (!emailInput.value.trim()) {
+    setCheckoutError('Informe um e-mail válido para sua conta.');
+    emailInput.focus();
+    return;
+  }
+  if (passwordInput.value.length < 12) {
+    setCheckoutError('Crie uma senha com pelo menos 12 caracteres.');
+    passwordInput.focus();
+    return;
+  }
+  if (passwordConfirmationInput.value !== passwordInput.value) {
+    setCheckoutError('A confirmação da senha não corresponde.');
+    passwordConfirmationInput.focus();
+    return;
+  }
+  if (!accountConsentInput.checked) {
+    setCheckoutError('Autorize o uso do e-mail para criar sua conta e acompanhar os pedidos.');
+    accountConsentInput.focus();
+    return;
+  }
   if (!deliveryConsentInput.checked) {
     setCheckoutError('Autorize o armazenamento do nome e endereço para processar a entrega.');
     deliveryConsentInput.focus();
@@ -427,8 +466,12 @@ async function submitCheckout(event) {
         checkoutRequestId,
         nome,
         cpf,
+        email: emailInput.value.trim(),
+        password: passwordInput.value,
+        passwordConfirmation: passwordConfirmationInput.value,
         device: detectDevice(),
         consent: consentInput.checked,
+        accountConsent: accountConsentInput.checked,
         deliveryConsent: deliveryConsentInput.checked,
         address,
         ...(selectedProduct.researchUseOnly ? { researchUseConsent: researchUseConsentInput.checked } : {}),
@@ -452,12 +495,20 @@ async function submitCheckout(event) {
     clearCheckoutRequestId(selectedProduct.id);
     checkoutFormView.hidden = true;
     checkoutResult.hidden = false;
+    currentOrderId = result.orderId;
     const value = Number(result.value);
     const chargedAmount = Number.isFinite(value) ? money.format(value) : formatPrice(selectedProduct.priceCents);
-    pixStatusMessage.textContent = `Pedido registrado. Cobrança de ${chargedAmount} criada, com envio grátis. Status atual: ${statusLabel(result.status)}. Use o código no aplicativo do seu banco.`;
+    pixStatusMessage.textContent = `Pedido registrado. Cobrança de ${chargedAmount} criada, com envio grátis. Status atual: ${statusLabel(result.status)}. Escaneie o QR Code ou use o código PIX no aplicativo do seu banco.`;
     orderIdElement.textContent = result.orderId;
     transactionId.textContent = result.transactionId;
     pixCode.value = result.pix;
+    if (typeof result.qrCodeDataUrl === 'string' && result.qrCodeDataUrl.startsWith('data:image/png;base64,')) {
+      pixQrImage.src = result.qrCodeDataUrl;
+      pixQrFigure.hidden = false;
+    } else {
+      pixQrFigure.hidden = true;
+      paymentCheckMessage.textContent = 'O código PIX copia e cola está disponível. Não foi possível montar a imagem QR agora; copie o código para pagar.';
+    }
   } catch (error) {
     const canRetry = error.retrySafe === true;
     setCheckoutError(
@@ -479,6 +530,33 @@ async function copyPixCode() {
     document.execCommand('copy');
   }
   copyPixButton.textContent = 'Código copiado';
+}
+
+async function checkPaymentStatus() {
+  if (!currentOrderId) return;
+  checkPaymentButton.disabled = true;
+  checkPaymentButton.textContent = 'Consultando…';
+  try {
+    const response = await fetch(`/api/customer/orders/${encodeURIComponent(currentOrderId)}`, {
+      method: 'GET',
+      cache: 'no-store',
+      credentials: 'same-origin',
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.order) throw new Error(result.error || 'Não foi possível consultar o status agora.');
+    if (result.order.paymentStatus === 'PAID') {
+      paymentCheckMessage.textContent = 'Pagamento confirmado pela Pixgate. Obrigado!';
+      checkPaymentButton.textContent = 'Pagamento confirmado';
+      return;
+    }
+    paymentCheckMessage.textContent = `O pagamento ainda está ${statusLabel(result.order.paymentStatus).toLowerCase()}. Aguarde a confirmação da Pixgate e consulte novamente.`;
+    checkPaymentButton.textContent = 'Já paguei — verificar status';
+  } catch (error) {
+    paymentCheckMessage.textContent = error.message || 'Não foi possível consultar o status agora.';
+    checkPaymentButton.textContent = 'Tentar verificar novamente';
+  } finally {
+    checkPaymentButton.disabled = false;
+  }
 }
 
 function bindDialogControls() {
@@ -512,6 +590,7 @@ async function loadCatalog() {
     window.addEventListener('resize', updateCarousel);
     checkoutForm.addEventListener('submit', submitCheckout);
     copyPixButton.addEventListener('click', copyPixCode);
+    checkPaymentButton.addEventListener('click', checkPaymentStatus);
     lookupCepButton.addEventListener('click', lookupCep);
     cepInput.addEventListener('input', () => {
       formatCepInput();

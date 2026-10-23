@@ -9,8 +9,12 @@ const validCheckout = () => ({
   checkoutRequestId: 'f4b6f8c9-1f3f-4f8a-8d17-2115c2a19b30',
   nome: 'Cliente de Teste',
   cpf: '11144477735',
+  email: 'cliente@example.com',
+  password: 'senha-segura-com-12',
+  passwordConfirmation: 'senha-segura-com-12',
   device: 'web',
   consent: true,
+  accountConsent: true,
   deliveryConsent: true,
   address: {
     cep: '01001-000',
@@ -35,6 +39,8 @@ test('normaliza endereço e calcula valor somente a partir do catálogo', () => 
   assert.equal(result.ok, true);
   assert.equal(result.value.totalCents, products.lipoless.priceCents);
   assert.equal(result.value.cpf, '11144477735');
+  assert.equal(result.value.email, 'cliente@example.com');
+  assert.equal(Object.hasOwn(result.value, 'password'), false, 'a senha não deve seguir para a camada de pedidos');
   assert.equal(result.value.address.cep, '01001000');
   assert.equal(result.value.address.state, 'SP');
   assert.equal(result.value.address.complement, 'Apto 2');
@@ -58,4 +64,18 @@ test('exige aceite de pesquisa para GHK-Cu', () => {
   assert.equal(validateCheckout(order, products, 0).ok, false);
   order.researchUseConsent = true;
   assert.equal(validateCheckout(order, products, 0).ok, true);
+});
+
+test('exige e-mail válido, senha longa e consentimento para a conta', () => {
+  const noConsent = { ...validCheckout(), accountConsent: false };
+  assert.equal(validateCheckout(noConsent, products, 0).ok, false);
+
+  const shortPassword = { ...validCheckout(), password: 'curta' };
+  assert.equal(validateCheckout(shortPassword, products, 0).ok, false);
+
+  const differentPassword = { ...validCheckout(), passwordConfirmation: 'outra-senha-segura' };
+  assert.equal(validateCheckout(differentPassword, products, 0).ok, false);
+
+  const invalidEmail = { ...validCheckout(), email: 'sem-email' };
+  assert.equal(validateCheckout(invalidEmail, products, 0).ok, false);
 });
