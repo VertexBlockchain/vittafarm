@@ -27,6 +27,7 @@ async function processCheckout({
   products,
   shippingCents = 0,
   apiKey,
+  postbackUrl,
   ordersEnabled,
   pixgateEnabled,
   fetchImpl = fetch,
@@ -35,6 +36,9 @@ async function processCheckout({
     return apiError(503, 'A criação de pedidos e cobranças reais está desabilitada nesta prévia. Nenhum pedido foi registrado.', true);
   }
   if (!apiKey) return apiError(503, 'A cobrança PIX está temporariamente indisponível.', true);
+  if (typeof postbackUrl !== 'string' || !postbackUrl.startsWith('https://')) {
+    return apiError(503, 'A confirmação automática do PIX ainda não está configurada. Defina uma URL pública HTTPS para o webhook.', true);
+  }
 
   const validation = validateCheckout(body, products, shippingCents);
   if (!validation.ok) return apiError(400, validation.error, true);
@@ -96,7 +100,7 @@ async function processCheckout({
     return apiError(503, 'Não foi possível registrar o pedido; nenhuma cobrança foi enviada à Pixgate.', true);
   }
 
-  const payload = buildPixgatePayload(order);
+  const payload = buildPixgatePayload({ ...order, postbackUrl });
   let providerResult;
   try {
     providerResult = await requestPixgate(payload, apiKey, fetchImpl);
@@ -201,4 +205,14 @@ async function listOrders(pool) {
   }));
 }
 
-module.exports = { listOrders, processCheckout };
+async function markOrderPaidByTransactionId(pool, transactionId) {
+  const normalized = normalizeTransactionId(transactionId);
+  if (!normalized) return false;
+  const [result] = await pool.execute(
+    "UPDATE orders SET payment_status = 'PAID' WHERE pixgate_transaction_id = ? AND payment_status <> 'PAID' RETURNING id",
+    [normalized],
+  );
+  return (Array.isArray(result) && result.length > 0) || Number(result?.rowCount ?? result?.affectedRows ?? 0) > 0;
+}
+
+module.exports = { listOrders, markOrderPaidByTransactionId, processCheckout };

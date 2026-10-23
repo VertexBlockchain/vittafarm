@@ -52,6 +52,7 @@ const enabledOptions = {
   products,
   shippingCents: 0,
   apiKey: 'mock-api-key',
+  postbackUrl: 'https://vittafarm.example/api/pixgate/webhook',
   ordersEnabled: true,
   pixgateEnabled: true,
 };
@@ -67,7 +68,8 @@ test('persiste antes da Pixgate, guarda endereço sem CPF e atualiza a cobrança
       events.push('pixgate');
       assert.deepEqual(events, ['insert', 'pixgate'], 'registro inicial deve preceder chamada externa');
       const payload = JSON.parse(init.body);
-      assert.deepEqual(Object.keys(payload).sort(), ['cpf', 'descricao', 'device', 'nome', 'valor']);
+      assert.deepEqual(Object.keys(payload).sort(), ['cpf', 'descricao', 'device', 'nome', 'postback', 'valor']);
+      assert.equal(payload.postback, 'https://vittafarm.example/api/pixgate/webhook');
       assert.equal(JSON.stringify(payload).includes('Praça da Sé'), false);
       return { ok: true, json: async () => ({ id: 'pixgate-mock-1', pix: 'pix-copy-paste-mock' }) };
     },

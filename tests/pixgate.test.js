@@ -10,9 +10,11 @@ test('payload Pixgate não contém CEP, rua ou qualquer outro endereço', () => 
     cpf: '11144477735',
     product,
     device: 'web',
+    postbackUrl: 'https://vittafarm.example/api/pixgate/webhook',
   });
-  assert.deepEqual(Object.keys(payload).sort(), ['cpf', 'descricao', 'device', 'nome', 'valor']);
-  assert.equal(payload.valor, product.priceCents / 100);
+  assert.deepEqual(Object.keys(payload).sort(), ['cpf', 'descricao', 'device', 'nome', 'postback', 'valor']);
+  assert.equal(payload.valor, (product.priceCents / 100).toFixed(2));
+  assert.equal(payload.postback, 'https://vittafarm.example/api/pixgate/webhook');
   assert.equal(JSON.stringify(payload).includes('01001000'), false);
   assert.equal(JSON.stringify(payload).includes('Praça da Sé'), false);
 });

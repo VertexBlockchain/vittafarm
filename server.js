@@ -3,7 +3,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const catalog = require('./catalog.json');
 const { getPool, pingDatabase, closePool } = require('./src/database');
-const { processCheckout, listOrders } = require('./src/orders');
+const { markOrderPaidByTransactionId, processCheckout, listOrders } = require('./src/orders');
 const {
   createSession,
   deleteSession,
@@ -26,6 +26,12 @@ const publicImagePath = /^images\/[a-z0-9._-]+\.(?:png|jpe?g|svg|webp)$/i;
 const loginFailures = new Map();
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const MAX_LOGIN_FAILURES = 8;
+
+function pixgatePostbackUrl() {
+  if (process.env.PIXGATE_POSTBACK_URL) return process.env.PIXGATE_POSTBACK_URL;
+  if (!process.env.PUBLIC_URL) return '';
+  return `${process.env.PUBLIC_URL.replace(/\/$/, '')}/api/pixgate/webhook`;
+}
 
 const contentTypes = Object.freeze({
   '.css': 'text/css; charset=utf-8',
@@ -146,6 +152,7 @@ async function handleCashIn(req, res) {
     products: PRODUCTS,
     shippingCents: SHIPPING_CENTS,
     apiKey: process.env.PIXGATE_API_KEY,
+    postbackUrl: pixgatePostbackUrl(),
     ordersEnabled: isOrdersEnabled(),
     pixgateEnabled: process.env.PIXGATE_LIVE_CASHIN === 'true',
   }).catch(() => ({
@@ -154,6 +161,29 @@ async function handleCashIn(req, res) {
   }));
 
   return sendJson(res, result.statusCode, result.body);
+}
+
+async function handlePixgateWebhook(req, res) {
+  let body;
+  try {
+    body = await readJson(req);
+  } catch (error) {
+    return sendJson(res, error.statusCode || 400, { error: error.message });
+  }
+
+  const event = String(body.event || '').toLowerCase();
+  const status = String(body.status || '').toUpperCase();
+  const transactionId = body.transaction_id || body.id;
+  if (event !== 'transaction.paid' || status !== 'PAID' || !transactionId) {
+    return sendJson(res, 400, { error: 'Notificação Pixgate inválida.' });
+  }
+
+  try {
+    const updated = await markOrderPaidByTransactionId(getPool(), transactionId);
+    return sendJson(res, 200, { received: true, updated });
+  } catch {
+    return sendJson(res, 503, { error: 'Não foi possível processar a confirmação agora.' });
+  }
 }
 
 async function requireAdmin(req, res, pool) {
@@ -331,6 +361,14 @@ function createServer() {
         return sendJson(res, 405, { error: 'Use POST para criar pedido e cobrança PIX.', retrySafe: true });
       }
       return handleCashIn(req, res);
+    }
+
+    if (pathname === '/api/pixgate/webhook') {
+      if (req.method !== 'POST') {
+        res.setHeader('Allow', 'POST');
+        return sendJson(res, 405, { error: 'Use POST para confirmar a transação Pixgate.' });
+      }
+      return handlePixgateWebhook(req, res);
     }
 
     if (pathname.startsWith('/api/admin/')) {

@@ -1,15 +1,19 @@
 const PIXGATE_CASHIN_URL = 'https://app.pixgateip.com/api/v1/cashin';
 const MAX_TRANSACTION_ID_LENGTH = 128;
 
-function buildPixgatePayload({ nome, cpf, product, device }) {
+function buildPixgatePayload({ nome, cpf, product, device, postbackUrl }) {
   if (!product || !Number.isSafeInteger(product.priceCents) || product.priceCents <= 0) {
     throw new Error('O produto não tem preço válido.');
+  }
+  if (typeof postbackUrl !== 'string' || !postbackUrl.startsWith('https://')) {
+    throw new Error('A URL de confirmação Pixgate precisa ser pública e usar HTTPS.');
   }
   return {
     nome,
     cpf,
-    valor: Number((product.priceCents / 100).toFixed(2)),
+    valor: (product.priceCents / 100).toFixed(2),
     descricao: `Vitta Farm - ${product.name} ${product.dose}`,
+    postback: postbackUrl,
     device,
   };
 }
