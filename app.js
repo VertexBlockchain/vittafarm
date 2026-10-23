@@ -307,6 +307,11 @@ function currentCepDigits() {
   return cepInput.value.replace(/\D/g, '');
 }
 
+function formatCepInput() {
+  const digits = currentCepDigits().slice(0, 8);
+  cepInput.value = digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
+}
+
 function fillFromViaCep(key, value) {
   const input = addressInputs[key];
   const previousValue = lastViaCepValues[key];
@@ -508,7 +513,14 @@ async function loadCatalog() {
     checkoutForm.addEventListener('submit', submitCheckout);
     copyPixButton.addEventListener('click', copyPixCode);
     lookupCepButton.addEventListener('click', lookupCep);
-    cepInput.addEventListener('input', scheduleCepLookup);
+    cepInput.addEventListener('input', () => {
+      formatCepInput();
+      scheduleCepLookup();
+    });
+    cepInput.addEventListener('change', lookupCep);
+    cepInput.addEventListener('blur', () => {
+      if (/^\d{8}$/.test(currentCepDigits())) lookupCep();
+    });
     bindDialogControls();
     updateCarousel();
   } catch {
