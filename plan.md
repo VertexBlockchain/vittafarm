@@ -8,7 +8,7 @@ O formulário explica separadamente que nome e CPF/CNPJ são enviados à Pixgate
 
 O backend valida dados, consentimentos e produto/preço a partir de `catalog.json`. Cria o pedido no banco antes de chamar a Pixgate, com chave idempotente; se o banco não salvar, não envia a cobrança. Em seguida registra ID e status devolvidos pela Pixgate. Falhas ambíguas ficam para conferência manual, sem repetição automática. O nome e endereço só podem ser consultados em `/admin`, protegido por senha exclusiva de ao menos 16 caracteres configurada pelo formulário secreto do projeto. O painel é somente de consulta; não oferece exclusão de pedidos. Sem webhook/status API, não mostrará pagamento ou entrega como concluídos automaticamente.
 
-O banco MySQL gerenciado está habilitado e é compartilhado por desenvolvimento e produção. Uma migration versionada, aditiva e idempotente cria tabelas de pedidos e sessões. `mysql2` conecta com TLS e validação de certificado; consultas usam parâmetros preparados. Não criar pedido de teste nem cobrança real durante validação.
+O banco PostgreSQL gerenciado será criado no Render e compartilhado por desenvolvimento e produção. Uma migration versionada, aditiva e idempotente cria tabelas de pedidos e sessões. `pg` conecta com TLS; consultas usam parâmetros preparados. Não criar pedido de teste nem cobrança real durante validação.
 
 Na prévia, o painel pode ser consultado após autenticação para validar o fluxo administrativo; somente cria sessões de curta duração. Novos pedidos e cobranças PIX reais permanecem bloqueados. No contêiner publicado, o checkout usa flags explícitas de runtime. O usuário não autorizou publicar esta versão; manter auto-publish desligado e parar na prévia/checkpoint até nova autorização.
 
@@ -18,13 +18,13 @@ Na prévia, o painel pode ser consultado após autenticação para validar o flu
 - `admin.html`, `admin.js`: página `/admin`, login por senha e consulta de pedidos/endereço; sem senha ou dados pessoais embutidos em código público.
 - `catalog.json`, `images/`: fonte compartilhada de produtos/preços e imagens existentes.
 - `server.js`: servidor HTTP, arquivos estáticos, healthcheck, rotas e separação entre checkout bloqueado na prévia e contêiner configurado.
-- `src/database.js`: pool MySQL a partir de `DATABASE_URL`, TLS estrito e funções comuns.
+- `src/database.js`: pool PostgreSQL a partir de `DATABASE_URL`, TLS estrito e funções comuns.
 - `src/orders.js`: validação e gravação idempotente, leitura dos pedidos autenticados.
 - `src/admin-auth.js`: autenticação com senha secreta, sessões opacas com hash no banco, cookie `HttpOnly; Secure; SameSite=None`, expiração e logout.
 - `src/pixgate.js`: cobrança com nome/CPF-CNPJ e valor validado no servidor; nunca recebe endereço.
 - `migrations/001_orders.sql`, `scripts/migrate.js`: tabelas idempotentes e histórico versionado de migrations.
 - `tests/`: testes de validação e comportamento com mocks; não inserir pedidos na base compartilhada.
-- `Dockerfile`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`: Node 22, `mysql2@3.24.6`, `pnpm@11.25.0` e flags de runtime para pedidos, painel e PIX no contêiner publicado.
+- `Dockerfile`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`: Node 22, `pg@8.16.3`, `pnpm@11.25.0` e flags de runtime para pedidos, painel e PIX no contêiner publicado.
 - `manus-routes.json`: páginas `/` e `/admin`; publicação roteia `/api/*`, `/admin` e `/healthz` ao servidor, e assets ao build estático com cache de revalidação.
 - `research/`: referências técnicas já consultadas.
 

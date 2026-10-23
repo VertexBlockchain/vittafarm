@@ -10,10 +10,10 @@ async function runMigrations() {
   try {
     await connection.query(
       `CREATE TABLE IF NOT EXISTS schema_migrations (
-        migration_id VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
-        applied_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+        migration_id VARCHAR(64) NOT NULL,
+        applied_at TIMESTAMP(3) NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
         PRIMARY KEY (migration_id)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+      )`,
     );
 
     const files = (await fs.readdir(MIGRATIONS_DIR))

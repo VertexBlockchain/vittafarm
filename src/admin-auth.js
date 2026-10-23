@@ -50,9 +50,9 @@ function expiredSessionCookie() {
 }
 
 async function createSession(pool, token) {
-  await pool.execute('DELETE FROM admin_sessions WHERE expires_at <= UTC_TIMESTAMP(3)');
+  await pool.execute('DELETE FROM admin_sessions WHERE expires_at <= (CURRENT_TIMESTAMP AT TIME ZONE \'UTC\')');
   await pool.execute(
-    'INSERT INTO admin_sessions (session_hash, expires_at) VALUES (?, DATE_ADD(UTC_TIMESTAMP(3), INTERVAL 8 HOUR))',
+    "INSERT INTO admin_sessions (session_hash, expires_at) VALUES (?, (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') + INTERVAL '8 hours')",
     [hashToken(token)],
   );
 }
@@ -60,7 +60,7 @@ async function createSession(pool, token) {
 async function isSessionValid(pool, token) {
   if (!SESSION_TOKEN_PATTERN.test(token || '')) return false;
   const [rows] = await pool.execute(
-    'SELECT 1 FROM admin_sessions WHERE session_hash = ? AND expires_at > UTC_TIMESTAMP(3) LIMIT 1',
+    "SELECT 1 FROM admin_sessions WHERE session_hash = ? AND expires_at > (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') LIMIT 1",
     [hashToken(token)],
   );
   return rows.length === 1;

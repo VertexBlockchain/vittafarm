@@ -1,4 +1,4 @@
-const mysql = require('mysql2/promise');
+const { Pool } = require('pg');
 
 let pool;
 
@@ -14,53 +14,56 @@ function parseDatabaseUrl(rawUrl) {
     throw new Error('DATABASE_URL inválida.');
   }
 
-  if (!['mysql:', 'mysql2:'].includes(url.protocol) || !url.hostname || !url.username || !url.pathname || url.pathname === '/') {
+  if (!['postgres:', 'postgresql:'].includes(url.protocol) || !url.hostname || !url.username || !url.pathname || url.pathname === '/') {
     throw new Error('DATABASE_URL não contém as informações necessárias.');
   }
 
-  const encodedSsl = url.searchParams.get('ssl');
-  if (!encodedSsl) throw new Error('A conexão MySQL deve exigir TLS.');
-
-  let ssl;
-  try {
-    ssl = JSON.parse(encodedSsl);
-  } catch {
-    throw new Error('A configuração TLS da conexão MySQL é inválida.');
+  const sslMode = url.searchParams.get('sslmode');
+  if (sslMode && !['require', 'verify-ca', 'verify-full'].includes(sslMode)) {
+    throw new Error('A conexão PostgreSQL deve exigir TLS.');
   }
-  if (!ssl || typeof ssl !== 'object' || Array.isArray(ssl) || ssl.rejectUnauthorized === false) {
-    throw new Error('A conexão MySQL exige validação de certificado TLS.');
-  }
-
-  let user;
-  let password;
-  let database;
-  try {
-    user = decodeURIComponent(url.username);
-    password = decodeURIComponent(url.password);
-    database = decodeURIComponent(url.pathname.slice(1));
-  } catch {
-    throw new Error('DATABASE_URL contém codificação inválida.');
-  }
-
-  if (!user || !password || !database) throw new Error('DATABASE_URL não contém usuário, senha e banco.');
 
   return {
-    host: url.hostname,
-    port: Number(url.port) || 3306,
-    user,
-    password,
-    database,
-    ssl: { ...ssl, rejectUnauthorized: true },
-    timezone: 'Z',
-    waitForConnections: true,
-    connectionLimit: 5,
-    queueLimit: 10,
-    connectTimeout: 10000,
+    connectionString: rawUrl,
+    max: 5,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
+    ssl: { rejectUnauthorized: false },
+  };
+}
+
+function toPostgresSql(sql) {
+  let index = 0;
+  return sql
+    .replace(/\?/g, () => `$${++index}`)
+    .replace(/UTC_TIMESTAMP\(3\)/g, "(CURRENT_TIMESTAMP AT TIME ZONE 'UTC')")
+    .replace(/DATE_ADD\(([^,]+), INTERVAL 8 HOUR\)/g, "$1 + INTERVAL '8 hours'");
+}
+
+function createCompatiblePool(options) {
+  const nativePool = new Pool(options);
+  return {
+    async execute(sql, params = []) {
+      const result = await nativePool.query(toPostgresSql(sql), params);
+      return [result.rows, result.fields];
+    },
+    async query(sql, params = []) {
+      return nativePool.query(sql, params);
+    },
+    async getConnection() {
+      const client = await nativePool.connect();
+      return {
+        query: (sql, params = []) => client.query(sql, params),
+        execute: (sql, params = []) => client.query(toPostgresSql(sql), params).then((result) => [result.rows, result.fields]),
+        release: () => client.release(),
+      };
+    },
+    end: () => nativePool.end(),
   };
 }
 
 function getPool() {
-  if (!pool) pool = mysql.createPool(parseDatabaseUrl(process.env.DATABASE_URL));
+  if (!pool) pool = createCompatiblePool(parseDatabaseUrl(process.env.DATABASE_URL));
   return pool;
 }
 
@@ -76,4 +79,4 @@ async function closePool() {
   }
 }
 
-module.exports = { closePool, getPool, parseDatabaseUrl, pingDatabase };
+module.exports = { closePool, getPool, parseDatabaseUrl, pingDatabase, toPostgresSql };

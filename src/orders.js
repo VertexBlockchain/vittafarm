@@ -51,7 +51,8 @@ async function processCheckout({
         delivery_consent_at, pixgate_consent_at, research_consent_at, payment_status
       ) VALUES (
         ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-        UTC_TIMESTAMP(3), UTC_TIMESTAMP(3), IF(?, UTC_TIMESTAMP(3), NULL), 'CREATING'
+        (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'), (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
+        CASE WHEN ? THEN (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') ELSE NULL END, 'CREATING'
       )`,
       [
         orderId,
@@ -75,7 +76,7 @@ async function processCheckout({
       ],
     );
   } catch (error) {
-    if (error?.code === 'ER_DUP_ENTRY') {
+    if (error?.code === 'ER_DUP_ENTRY' || error?.code === '23505') {
       try {
         const existing = await loadDuplicate(pool, order.checkoutRequestId);
         return {
