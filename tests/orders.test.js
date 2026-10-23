@@ -11,12 +11,10 @@ const checkout = () => ({
   nome: 'Cliente de Teste',
   cpf: '11144477735',
   email: 'cliente@example.com',
-  password: 'senha-segura-com-12',
-  passwordConfirmation: 'senha-segura-com-12',
+  password: '123456',
+  passwordConfirmation: '123456',
   device: 'web',
-  consent: true,
-  accountConsent: true,
-  deliveryConsent: true,
+  termsConsent: true,
   address: {
     cep: '01001-000',
     street: 'Praça da Sé',
@@ -79,18 +77,22 @@ test('persiste antes da Pixgate, guarda endereço sem CPF e atualiza a cobrança
       assert.equal(callback.origin + callback.pathname, 'https://vittafarm.example/api/pixgate/webhook');
       assert.match(callback.searchParams.get('token'), /^[A-Za-z0-9_-]{43}$/);
       assert.equal(JSON.stringify(payload).includes('Praça da Sé'), false);
-      return { ok: true, json: async () => ({ id: 'pixgate-mock-1', pix: 'pix-copy-paste-mock' }) };
+      return { ok: true, json: async () => ({ id: 'pixgate-mock-1', pix: '  pix-copy-paste-mock \n' }) };
     },
   });
 
   assert.equal(result.statusCode, 200);
   assert.equal(result.body.status, 'PENDING');
   assert.match(result.body.qrCodeDataUrl, /^data:image\/png;base64,/);
+  assert.equal(result.body.pix, 'pix-copy-paste-mock');
+  const qrPng = Buffer.from(result.body.qrCodeDataUrl.split(',')[1], 'base64');
+  assert.equal(qrPng.readUInt32BE(16), 640);
+  assert.equal(qrPng.readUInt32BE(20), 640);
   assert.equal(result.body.value, products.lipoless.priceCents / 100);
   assert.deepEqual(events, ['insert', 'pixgate', 'update']);
   assert.ok(options.insertParams.includes('Praça da Sé'));
   assert.ok(options.insertParams.includes('bf9950c4-746c-49a9-9736-c97bfa452dea'));
-  assert.equal(options.insertParams.some((value) => value === 'senha-segura-com-12'), false, 'senha nunca deve ser persistida no pedido');
+  assert.equal(options.insertParams.some((value) => value === '123456'), false, 'senha nunca deve ser persistida no pedido');
   assert.equal(options.insertParams.includes('11144477735'), false, 'CPF não deve ser persistido');
   assert.deepEqual(options.updateParams.slice(0, 2), ['PENDING', 'pixgate-mock-1']);
 });

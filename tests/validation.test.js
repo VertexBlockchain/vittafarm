@@ -10,12 +10,10 @@ const validCheckout = () => ({
   nome: 'Cliente de Teste',
   cpf: '11144477735',
   email: 'cliente@example.com',
-  password: 'senha-segura-com-12',
-  passwordConfirmation: 'senha-segura-com-12',
+  password: '123456',
+  passwordConfirmation: '123456',
   device: 'web',
-  consent: true,
-  accountConsent: true,
-  deliveryConsent: true,
+  termsConsent: true,
   address: {
     cep: '01001-000',
     street: 'Praça da Sé',
@@ -46,34 +44,31 @@ test('normaliza endereço e calcula valor somente a partir do catálogo', () => 
   assert.equal(result.value.address.complement, 'Apto 2');
 });
 
-test('rejeita endereço incompleto, consentimento ausente e preço enviado pelo navegador', () => {
+test('rejeita endereço incompleto, aceite único ausente e preço enviado pelo navegador', () => {
   const missingAddress = validCheckout();
   missingAddress.address.cep = '123';
   assert.equal(validateCheckout(missingAddress, products, 0).ok, false);
 
   const missingConsent = validCheckout();
-  missingConsent.deliveryConsent = false;
+  missingConsent.termsConsent = false;
   assert.equal(validateCheckout(missingConsent, products, 0).ok, false);
 
   const forgedPrice = { ...validCheckout(), priceCents: 1 };
   assert.equal(validateCheckout(forgedPrice, products, 0).ok, false);
 });
 
-test('exige aceite de pesquisa para GHK-Cu', () => {
+test('o aceite único inclui a declaração exigida para produto de pesquisa', () => {
   const order = { ...validCheckout(), productId: 'ghk-cu-thera' };
-  assert.equal(validateCheckout(order, products, 0).ok, false);
-  order.researchUseConsent = true;
   assert.equal(validateCheckout(order, products, 0).ok, true);
+  order.termsConsent = false;
+  assert.equal(validateCheckout(order, products, 0).ok, false);
 });
 
-test('exige e-mail válido, senha longa e consentimento para a conta', () => {
-  const noConsent = { ...validCheckout(), accountConsent: false };
-  assert.equal(validateCheckout(noConsent, products, 0).ok, false);
-
-  const shortPassword = { ...validCheckout(), password: 'curta' };
+test('exige e-mail válido, senha de no mínimo seis caracteres e confirmação correspondente', () => {
+  const shortPassword = { ...validCheckout(), password: '12345', passwordConfirmation: '12345' };
   assert.equal(validateCheckout(shortPassword, products, 0).ok, false);
 
-  const differentPassword = { ...validCheckout(), passwordConfirmation: 'outra-senha-segura' };
+  const differentPassword = { ...validCheckout(), passwordConfirmation: '654321' };
   assert.equal(validateCheckout(differentPassword, products, 0).ok, false);
 
   const invalidEmail = { ...validCheckout(), email: 'sem-email' };

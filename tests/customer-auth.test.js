@@ -47,41 +47,41 @@ function customerPool() {
   };
 }
 
-test('cria conta com e-mail normalizado e nunca guarda a senha em texto aberto', async () => {
+test('cria conta com e-mail normalizado, aceita PIN de seis dígitos e nunca guarda a senha em texto aberto', async () => {
   const pool = customerPool();
   const created = await authenticateCustomer(pool, {
     email: '  Cliente@Example.com ',
-    password: 'senha-segura-com-12',
+    password: '123456',
     displayName: 'Cliente de Teste',
     allowCreate: true,
   });
   assert.equal(created.created, true);
   assert.equal(created.email, 'cliente@example.com');
-  assert.notEqual(pool.state.account.password_hash, 'senha-segura-com-12');
-  assert.notEqual(pool.state.account.password_salt, 'senha-segura-com-12');
+  assert.notEqual(pool.state.account.password_hash, '123456');
+  assert.notEqual(pool.state.account.password_salt, '123456');
 
   const signedIn = await authenticateCustomer(pool, {
     email: 'CLIENTE@example.com',
-    password: 'senha-segura-com-12',
+    password: '123456',
     allowCreate: false,
   });
   assert.equal(signedIn.id, created.id);
   assert.equal(signedIn.created, false);
 });
 
-test('não cria contas no login, exige senha correta e recusa senhas curtas', async () => {
+test('não cria contas no login, exige senha correta e recusa senhas menores que seis caracteres', async () => {
   const pool = customerPool();
   await assert.rejects(
-    authenticateCustomer(pool, { email: 'novo@example.com', password: 'senha-segura-com-12', allowCreate: false }),
+    authenticateCustomer(pool, { email: 'novo@example.com', password: '123456', allowCreate: false }),
     (error) => error instanceof CustomerAuthError && error.code === 'INVALID_CREDENTIALS',
   );
-  await authenticateCustomer(pool, { email: 'cliente@example.com', password: 'senha-segura-com-12', allowCreate: true });
+  await authenticateCustomer(pool, { email: 'cliente@example.com', password: '123456', allowCreate: true });
   await assert.rejects(
-    authenticateCustomer(pool, { email: 'cliente@example.com', password: 'senha-errada-123', allowCreate: false }),
+    authenticateCustomer(pool, { email: 'cliente@example.com', password: '654321', allowCreate: false }),
     (error) => error instanceof CustomerAuthError && error.code === 'INVALID_CREDENTIALS',
   );
   await assert.rejects(
-    authenticateCustomer(pool, { email: 'novo@example.com', password: 'curta', allowCreate: true }),
+    authenticateCustomer(pool, { email: 'novo@example.com', password: '12345', allowCreate: true }),
     (error) => error instanceof CustomerAuthError && error.code === 'INVALID_CREDENTIALS',
   );
 });
@@ -90,7 +90,7 @@ test('sessão usa token opaco e cookie HttpOnly/Secure', async () => {
   const pool = customerPool();
   const customer = await authenticateCustomer(pool, {
     email: 'cliente@example.com',
-    password: 'senha-segura-com-12',
+    password: '123456',
     allowCreate: true,
   });
   const token = newCustomerSessionToken();

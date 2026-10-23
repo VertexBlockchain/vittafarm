@@ -43,11 +43,9 @@ const addressInputs = {
   city: document.querySelector('#customer-city'),
   state: document.querySelector('#customer-state'),
 };
-const consentInput = document.querySelector('#pix-consent');
-const accountConsentInput = document.querySelector('#account-consent');
-const deliveryConsentInput = document.querySelector('#delivery-consent');
-const researchUseConsentRow = document.querySelector('#research-use-consent-row');
-const researchUseConsentInput = document.querySelector('#research-use-consent');
+const termsConsentInput = document.querySelector('#terms-consent');
+const researchUseDeclaration = document.querySelector('#research-use-declaration');
+const checkoutTermsDetails = document.querySelector('#checkout-terms-details');
 const arrowIcon = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M10 5l5 5-5 5" /></svg>';
 const AMBIGUOUS_CHECKOUT_PREFIX = 'vitta:ambiguous-checkout:';
 const CHECKOUT_REQUEST_PREFIX = 'vitta:checkout-request:';
@@ -184,7 +182,7 @@ function openCheckout(product) {
   currentOrderId = '';
   checkPaymentButton.disabled = false;
   checkPaymentButton.textContent = 'Já paguei — verificar status';
-  paymentCheckMessage.textContent = 'A confirmação vem automaticamente da Pixgate. Este botão apenas consulta o status; não confirma o pagamento por declaração.';
+  paymentCheckMessage.textContent = '';
   orderIdElement.textContent = '';
   transactionId.textContent = '';
   checkoutProductName.textContent = `${product.name} · ${product.dose}`;
@@ -194,8 +192,8 @@ function openCheckout(product) {
   checkoutProductSummary.textContent = `${packageText}. Valor: ${total} ${priceUnit}. Envio grátis. Total do pedido: ${total}.`;
   checkoutPackageWarning.textContent = product.packageNote || '';
   checkoutPackageWarning.hidden = product.packageConfidence === 'official';
-  researchUseConsentRow.hidden = !product.researchUseOnly;
-  researchUseConsentInput.required = Boolean(product.researchUseOnly);
+  researchUseDeclaration.hidden = !product.researchUseOnly;
+  checkoutTermsDetails.open = false;
 
   const previousUncertainOrder = ambiguousCheckout(product.id);
   if (previousUncertainOrder) {
@@ -413,8 +411,8 @@ async function submitCheckout(event) {
     emailInput.focus();
     return;
   }
-  if (passwordInput.value.length < 12) {
-    setCheckoutError('Crie uma senha com pelo menos 12 caracteres.');
+  if (passwordInput.value.length < 6) {
+    setCheckoutError('Crie uma senha com pelo menos 6 caracteres.');
     passwordInput.focus();
     return;
   }
@@ -423,24 +421,9 @@ async function submitCheckout(event) {
     passwordConfirmationInput.focus();
     return;
   }
-  if (!accountConsentInput.checked) {
-    setCheckoutError('Autorize o uso do e-mail para criar sua conta e acompanhar os pedidos.');
-    accountConsentInput.focus();
-    return;
-  }
-  if (!deliveryConsentInput.checked) {
-    setCheckoutError('Autorize o armazenamento do nome e endereço para processar a entrega.');
-    deliveryConsentInput.focus();
-    return;
-  }
-  if (!consentInput.checked) {
-    setCheckoutError('Confirme o envio do nome e CPF/CNPJ à Pixgate para gerar o PIX.');
-    consentInput.focus();
-    return;
-  }
-  if (selectedProduct.researchUseOnly && !researchUseConsentInput.checked) {
-    setCheckoutError('Confirme que entendeu que este produto é destinado somente à pesquisa e não ao uso humano.');
-    researchUseConsentInput.focus();
+  if (!termsConsentInput.checked) {
+    setCheckoutError('Aceite os termos de compra e privacidade para continuar.');
+    termsConsentInput.focus();
     return;
   }
 
@@ -470,11 +453,8 @@ async function submitCheckout(event) {
         password: passwordInput.value,
         passwordConfirmation: passwordConfirmationInput.value,
         device: detectDevice(),
-        consent: consentInput.checked,
-        accountConsent: accountConsentInput.checked,
-        deliveryConsent: deliveryConsentInput.checked,
+        termsConsent: termsConsentInput.checked,
         address,
-        ...(selectedProduct.researchUseOnly ? { researchUseConsent: researchUseConsentInput.checked } : {}),
       }),
     });
     const result = await response.json().catch(() => ({}));

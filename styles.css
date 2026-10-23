@@ -268,6 +268,12 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 .dialog-privacy { margin: 0; }
 .consent-field { display: flex; align-items: flex-start; gap: 10px; color: #536a60; font-size: 11px; line-height: 1.55; cursor: pointer; }
 .consent-field input { width: 17px; height: 17px; flex: 0 0 auto; accent-color: var(--green); }
+.checkout-terms { border: 1px solid #dce6dd; border-radius: 11px; background: #f7f9f5; color: #61746b; }
+.checkout-terms summary { padding: 11px 13px; color: var(--green-dark); font-size: 11px; font-weight: 700; cursor: pointer; }
+.checkout-terms-content { padding: 0 13px 11px; font-size: 11px; line-height: 1.55; }
+.checkout-terms-content p { margin: 0 0 8px; }
+.checkout-terms-content p:last-child { margin-bottom: 0; }
+.payment-status-message { margin: 8px 0; color: #49665a; font-size: 12px; line-height: 1.5; }
 .checkout-submit { width: 100%; border: 0; cursor: pointer; }
 .checkout-submit:disabled { opacity: .62; cursor: wait; }
 .form-error { margin: 0; color: #a3312b; font-size: 12px; line-height: 1.55; }
@@ -278,7 +284,7 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 .button-secondary { min-height: 46px; border: 1px solid #bad4c7; color: var(--green-dark); background: #f5faf5; box-shadow: none; cursor: pointer; }
 .button-secondary:hover { background: var(--mint-soft); }
 .pix-qr-figure { display: grid; justify-items: center; gap: 8px; margin: 20px auto; padding: 14px; width: fit-content; border: 1px solid #dce6dd; border-radius: 16px; background: #fff; }
-.pix-qr-figure img { display: block; width: min(280px, 68vw); height: auto; image-rendering: pixelated; }
+.pix-qr-figure img { display: block; width: min(360px, 84vw); height: auto; image-rendering: pixelated; }
 .pix-qr-figure figcaption { color: #61746b; font-size: 11px; text-align: center; }
 .account-checkout-hint { margin: 0; color: #61746b; font-size: 11px; line-height: 1.6; }
 .account-checkout-hint a { color: var(--green-dark); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
