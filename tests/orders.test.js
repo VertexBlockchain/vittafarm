@@ -190,6 +190,8 @@ test('lista administrativa mostra telefone de pedido e estado separado de autori
       assert.match(sql, /FROM customer_accounts customers/);
       assert.match(sql, /customers\.phone/);
       assert.match(sql, /whatsapp_marketing_consent_at IS NOT NULL/);
+      assert.match(sql, /LEFT JOIN LATERAL/);
+      assert.match(sql, /last_order\.payment_status = 'PAID'/);
       return [[
         {
           email: 'autorizado@example.com',
@@ -197,6 +199,9 @@ test('lista administrativa mostra telefone de pedido e estado separado de autori
           phone: '+5547920006015',
           marketing_consent_at: new Date('2026-10-24T12:00:00Z'),
           order_count: 2,
+          last_order_product_name: 'Lipoless',
+          last_order_status: 'PENDING',
+          last_order_at: new Date('2026-10-24T12:00:00Z'),
           created_at: new Date('2026-10-20T12:00:00Z'),
         },
         {
@@ -205,17 +210,36 @@ test('lista administrativa mostra telefone de pedido e estado separado de autori
           phone: '+5547999998888',
           marketing_consent_at: null,
           order_count: 1,
+          last_order_product_name: 'Tirzec',
+          last_order_status: 'PAID',
+          last_order_at: new Date('2026-10-23T12:00:00Z'),
           created_at: new Date('2026-10-21T12:00:00Z'),
+        },
+        {
+          email: 'sem-pedido@example.com',
+          display_name: 'Cadastro sem pedido',
+          phone: '+5547999997777',
+          marketing_consent_at: null,
+          order_count: 0,
+          last_order_product_name: null,
+          last_order_status: null,
+          last_order_at: null,
+          created_at: new Date('2026-10-22T12:00:00Z'),
         },
       ], []];
     },
   };
   const customers = await listCustomersForAdmin(pool);
-  assert.equal(customers.length, 2);
+  assert.equal(customers.length, 3);
   assert.equal(customers[0].email, 'autorizado@example.com');
   assert.equal(customers[0].phone, '+5547920006015');
   assert.equal(customers[0].whatsappMarketingConsent, true);
+  assert.equal(customers[0].lastOrderProductName, 'Lipoless');
+  assert.equal(customers[0].lastOrderStatus, 'PENDING');
   assert.equal(customers[1].email, 'sem-consentimento@example.com');
   assert.equal(customers[1].phone, '+5547999998888');
   assert.equal(customers[1].whatsappMarketingConsent, false);
+  assert.equal(customers[1].lastOrderStatus, 'PAID');
+  assert.equal(customers[2].lastOrderStatus, 'NO_ORDER');
+  assert.equal(customers[2].orderCount, 0);
 });

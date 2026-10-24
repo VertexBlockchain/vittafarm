@@ -9,7 +9,6 @@ const {
   listCustomersForAdmin,
   markOrderPaidByTransactionId,
   processCheckout,
-  listOrders,
 } = require('./src/orders');
 const { validateCheckout } = require('./src/validation');
 const {
@@ -471,21 +470,6 @@ async function handleAdmin(req, res, pathname) {
     return authenticated
       ? sendJson(res, 200, { authenticated: true })
       : sendJson(res, 401, { authenticated: false });
-  }
-
-  if (pathname === '/api/admin/orders') {
-    if (req.method !== 'GET') {
-      res.setHeader('Allow', 'GET');
-      return sendJson(res, 405, { error: 'Use GET para consultar pedidos.' });
-    }
-    if (!readSessionToken(req)) return sendJson(res, 401, { error: 'Autenticação necessária.' });
-    const pool = getPool();
-    if (!await requireAdmin(req, res, pool)) return;
-    try {
-      return sendJson(res, 200, { orders: await listOrders(pool) });
-    } catch {
-      return sendJson(res, 503, { error: 'Não foi possível consultar os pedidos agora.' });
-    }
   }
 
   if (pathname === '/api/admin/customers') {
