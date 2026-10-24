@@ -6,6 +6,8 @@ const carouselStatus = document.querySelector('#carousel-status');
 const meter = document.querySelector('#scroll-meter-fill');
 const infoDialog = document.querySelector('#product-info-dialog');
 const checkoutDialog = document.querySelector('#checkout-dialog');
+const whatsappFloat = document.querySelector('#whatsapp-float');
+const whatsappFloatClose = document.querySelector('#whatsapp-float-close');
 const infoTitle = document.querySelector('#product-info-title');
 const infoPackage = document.querySelector('#product-info-package');
 const infoBody = document.querySelector('#product-info-body');
@@ -163,6 +165,7 @@ function setCheckoutError(message, retrySafe = true, productId = '', orderId = '
 
 function openCheckout(product) {
   if (!hasPrice(product)) return;
+  checkoutDialog.classList.remove('pix-result-open');
   selectedProduct = product;
   checkoutRequestId = checkoutRequestIdFor(product.id);
   lastViaCepValues = { street: '', neighborhood: '', city: '', state: '' };
@@ -475,6 +478,7 @@ async function submitCheckout(event) {
     clearCheckoutRequestId(selectedProduct.id);
     checkoutFormView.hidden = true;
     checkoutResult.hidden = false;
+    checkoutDialog.classList.add('pix-result-open');
     currentOrderId = result.orderId;
     const value = Number(result.value);
     const chargedAmount = Number.isFinite(value) ? money.format(value) : formatPrice(selectedProduct.priceCents);
@@ -542,6 +546,9 @@ async function checkPaymentStatus() {
 function bindDialogControls() {
   document.querySelectorAll('[data-close-dialog]').forEach((button) => {
     button.addEventListener('click', () => button.closest('dialog')?.close());
+  });
+  whatsappFloatClose?.addEventListener('click', () => {
+    whatsappFloat.hidden = true;
   });
   [infoDialog, checkoutDialog].forEach((dialog) => {
     dialog.addEventListener('click', (event) => {

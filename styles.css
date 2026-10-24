@@ -248,6 +248,8 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 .site-dialog { width: min(540px, calc(100vw - 28px)); max-width: none; max-height: min(88dvh, 760px); overflow-y: auto; padding: 0; border: 1px solid #d5e1d7; border-radius: 22px; color: var(--ink); background: var(--white); box-shadow: 0 28px 90px rgba(12, 40, 33, .28); }
 .site-dialog::backdrop { background: rgba(11, 37, 32, .56); backdrop-filter: blur(3px); }
 .dialog-content { padding: clamp(22px, 5vw, 34px); }
+.site-dialog.pix-result-open { position: fixed; inset: 0; width: 100%; height: 100vh; height: 100dvh; max-width: none; max-height: none; margin: 0; overflow-x: hidden; overflow-y: auto; border: 0; border-radius: 0; }
+.site-dialog.pix-result-open .dialog-content { display: flex; flex-direction: column; justify-content: safe center; width: min(560px, 100%); min-height: 100vh; min-height: 100dvh; margin-inline: auto; padding: max(18px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left)); }
 .dialog-topline { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
 .dialog-topline .section-kicker { margin: 0; }
 .dialog-close { width: 38px; height: 38px; display: grid; flex: 0 0 auto; place-items: center; border: 1px solid #d7e1d8; border-radius: 50%; color: var(--ink); background: transparent; font-size: 24px; line-height: 1; cursor: pointer; }
@@ -263,7 +265,7 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 #checkout-form { display: grid; gap: 13px; }
 .form-field { display: grid; gap: 7px; color: var(--ink-soft); font-size: 11px; font-weight: 700; }
 .form-field input, .form-field textarea { width: 100%; min-height: 46px; padding: 11px 13px; border: 1px solid #cfdcd2; border-radius: 11px; color: var(--ink); background: #fff; font: 500 14px 'DM Sans', sans-serif; }
-.form-field textarea { min-height: 118px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 11px; line-height: 1.55; overflow-wrap: anywhere; }
+.form-field textarea { min-width: 0; max-width: 100%; min-height: 118px; resize: vertical; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-all; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 11px; line-height: 1.55; }
 .form-field input:focus, .form-field textarea:focus { outline: 3px solid rgba(139, 203, 181, .45); border-color: var(--green); }
 .dialog-privacy { margin: 0; }
 .consent-field { display: flex; align-items: flex-start; gap: 10px; color: #536a60; font-size: 11px; line-height: 1.55; cursor: pointer; }
@@ -279,16 +281,26 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 .form-error { margin: 0; color: #a3312b; font-size: 12px; line-height: 1.55; }
 .transaction-id { color: #667b71; font-size: 11px; overflow-wrap: anywhere; }
 .transaction-id strong { color: var(--ink); }
+.pix-result { width: 100%; min-width: 0; }
 .pix-result h2 { margin-top: 4px; }
 #copy-pix { margin-top: 12px; }
 .button-secondary { min-height: 46px; border: 1px solid #bad4c7; color: var(--green-dark); background: #f5faf5; box-shadow: none; cursor: pointer; }
 .button-secondary:hover { background: var(--mint-soft); }
-.pix-qr-figure { display: grid; justify-items: center; gap: 8px; margin: 20px auto; padding: 14px; width: fit-content; border: 1px solid #dce6dd; border-radius: 16px; background: #fff; }
-.pix-qr-figure img { display: block; width: min(360px, 84vw); height: auto; image-rendering: pixelated; }
+.pix-qr-figure { display: grid; justify-items: center; gap: 8px; box-sizing: border-box; width: min(100%, 388px); max-width: 100%; margin: 20px auto; padding: 14px; border: 1px solid #dce6dd; border-radius: 16px; background: #fff; }
+.pix-qr-figure img { display: block; width: 100%; max-width: 360px; height: auto; image-rendering: pixelated; }
 .pix-qr-figure figcaption { color: #61746b; font-size: 11px; text-align: center; }
 .account-checkout-hint { margin: 0; color: #61746b; font-size: 11px; line-height: 1.6; }
 .account-checkout-hint a { color: var(--green-dark); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .pix-result .account-checkout-hint { margin-top: 14px; }
+
+.whatsapp-float { position: fixed; z-index: 20; right: 20px; bottom: calc(20px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 9px; }
+.whatsapp-float[hidden] { display: none !important; }
+.whatsapp-float-link { display: inline-flex; min-height: 54px; align-items: center; gap: 10px; padding: 0 18px; border: 1px solid #0b755f; border-radius: 999px; color: #fff; background: #128c72; box-shadow: 0 10px 26px rgba(11, 70, 56, .25); font-size: 12px; font-weight: 700; transition: transform .18s ease, background .18s ease; }
+.whatsapp-float-link:hover { transform: translateY(-2px); background: #0e745f; }
+.whatsapp-float-link:focus-visible, .whatsapp-float-close:focus-visible { outline: 3px solid #8bcbb5; outline-offset: 3px; }
+.whatsapp-float-link svg { display: block; width: 25px; height: 25px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.whatsapp-float-close { display: grid; width: 30px; height: 30px; place-items: center; border: 1px solid #d2dfd5; border-radius: 50%; color: #385e53; background: #fffefa; box-shadow: 0 4px 14px rgba(20, 55, 44, .12); font-size: 20px; line-height: 1; cursor: pointer; }
+.whatsapp-float-close:hover { color: #173c38; background: #e5f0e9; }
 
 .account-page { min-height: 100vh; }
 .account-shell { width: min(760px, calc(100% - 36px)); padding-block: clamp(40px, 8vw, 82px) 72px; }
@@ -320,6 +332,9 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
   .product-cta, .product-info-button { min-height: 39px; font-size: 9px; }
   .dialog-content { padding: 21px 18px; }
   .dialog-topline { margin-bottom: 18px; }
+  .site-dialog.pix-result-open .dialog-content { width: 100%; padding-inline: max(12px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-right)); }
+  .whatsapp-float { right: 12px; bottom: calc(14px + env(safe-area-inset-bottom)); gap: 7px; }
+  .whatsapp-float-link { min-height: 50px; gap: 8px; padding-inline: 14px; font-size: 11px; }
 }
 
 
