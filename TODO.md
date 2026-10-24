@@ -22,4 +22,4 @@
 - [x] Publicação da correção de layout e suporte — PR #3 mesclado e implantado no Render.
 - [x] Reajuste de preços preparado — Aplicar aumento mínimo de 30% e arredondar para cima ao próximo final `,90`: Lipoless e Tirzec R$ 629,90; Gluconex R$ 672,90; Tirzedral R$ 393,90; Slimex R$ 637,90; T.G. 15mg R$ 708,90; GHK-Cu R$ 584,90.
 - [x] Publicação do reajuste — PR #4 mesclado; catálogo público conferido no Render.
-- [ ] Publicação de telefone, opt-in e painel de clientes — Criar PR, pedir autorização específica, mesclar em `main` (que aciona Render) e confirmar migration 003, lista protegida e fluxo de revogação.
+- [ ] Publicação de telefone, opt-in e painel de clientes — PR #5 (`cdb2333`) está aberto e mergeável; aguarda autorização específica antes de mesclar em `main` (auto-deploy Render) e confirmar migration 003, lista protegida e fluxo de revogação.
