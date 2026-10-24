@@ -182,12 +182,13 @@ async function processCheckout({
   }
 
   let qrCodeDataUrl = '';
+  const pix = data.pix.trim();
   try {
-    qrCodeDataUrl = await QRCode.toDataURL(data.pix, {
-      errorCorrectionLevel: 'M',
-      margin: 2,
-      width: 280,
-      color: { dark: '#102b24', light: '#ffffff' },
+    qrCodeDataUrl = await QRCode.toDataURL(pix, {
+      errorCorrectionLevel: 'L',
+      margin: 4,
+      width: 640,
+      color: { dark: '#000000', light: '#ffffff' },
     });
   } catch {
     // O copia e cola continua disponível caso a resposta não possa ser codificada como QR.
@@ -198,7 +199,7 @@ async function processCheckout({
     body: {
       orderId,
       transactionId,
-      pix: data.pix,
+      pix,
       qrCodeDataUrl,
       value: Number((order.totalCents / 100).toFixed(2)),
       status: 'PENDING',
