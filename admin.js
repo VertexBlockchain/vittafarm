@@ -2,6 +2,8 @@ const loginView = document.querySelector('#admin-login-view');
 const customersView = document.querySelector('#admin-customers-view');
 const loginForm = document.querySelector('#admin-login-form');
 const passwordInput = document.querySelector('#admin-password');
+const passwordToggleButton = document.querySelector('#admin-password-toggle');
+const passwordCount = document.querySelector('#admin-password-count');
 const loginButton = document.querySelector('#admin-login-button');
 const loginMessage = document.querySelector('#admin-login-message');
 const customersMessage = document.querySelector('#admin-customers-message');
@@ -35,10 +37,27 @@ async function api(path, options = {}) {
   return result;
 }
 
+function updatePasswordCount() {
+  const length = passwordInput.value.length;
+  passwordCount.textContent = `${length} caractere${length === 1 ? '' : 's'}`;
+}
+
+function setPasswordVisibility(visible) {
+  passwordInput.type = visible ? 'text' : 'password';
+  passwordToggleButton.setAttribute('aria-pressed', String(visible));
+  passwordToggleButton.setAttribute('aria-label', visible ? 'Ocultar senha' : 'Mostrar senha');
+}
+
+passwordInput.addEventListener('input', updatePasswordCount);
+passwordToggleButton.addEventListener('click', () => setPasswordVisibility(passwordInput.type === 'password'));
+updatePasswordCount();
+
 function showLogin(message = '', isError = false) {
   loginView.hidden = false;
   customersView.hidden = true;
   passwordInput.value = '';
+  updatePasswordCount();
+  setPasswordVisibility(false);
   setMessage(loginMessage, message, isError);
 }
 
@@ -175,6 +194,8 @@ loginForm.addEventListener('submit', async (event) => {
   try {
     await api('/api/admin/login', { method: 'POST', body: JSON.stringify({ password: passwordInput.value }) });
     passwordInput.value = '';
+    updatePasswordCount();
+    setPasswordVisibility(false);
     showCustomers();
     await loadCustomers();
   } catch (error) {
