@@ -1,7 +1,7 @@
 # TODO — Vitta Farm
 
 - [x] Catálogo e apresentação — Exibir os sete produtos com nomes, doses, preços por caixa/frasco, imagens maiores, cartões bem separados e carrossel responsivo; remover o painel com o “V” gigante e preservar o estilo botânico.
-- [x] Canais e preços — WhatsApp somente para dúvidas; “Comprar” inicia o checkout. Gluconex: R$ 517,60; Slimex: R$ 490,21 (médias confirmadas dos intervalos); manter os preços fixos anteriores dos demais produtos. GHK-Cu Thera 50 mg: R$ 449,90 por frasco.
+- [x] Canais e preços originais — WhatsApp somente para dúvidas; “Comprar” inicia o checkout. Os preços mencionados aqui são os valores da configuração anterior ao reajuste.
 - [x] Informações GHK-Cu — Exibir a informação factual acordada, sem dose, modo de uso, promessa de benefício ou afirmação não verificada de pureza/origem; não destacar o aviso do rótulo no cartão; preservar no aceite único a declaração de uso exclusivo para pesquisa, quando aplicável.
 - [x] Integração PIX existente e proteção da prévia — A chave Pixgate fica somente no servidor; o servidor deriva produto e preço do catálogo, envia nome/CPF-CNPJ e dispositivo à Pixgate e não envia endereço. A cobrança começa pendente. Na prévia, criação de pedidos e cobranças reais permanecem desabilitadas; a validação usa mocks.
 - [x] Campos do checkout e envio grátis — Ao clicar “Comprar”, pedir nome e CPF/CNPJ para gerar a cobrança, mais CEP, rua/avenida, número, complemento opcional, bairro, cidade e UF para entrega. Exibir “Envio grátis” nos produtos e no resumo do checkout; usar frete de R$ 0,00 e não acrescentá-lo ao valor enviado à Pixgate.
@@ -16,4 +16,6 @@
 - [x] Confirmação de pagamento — A Pixgate envia `transaction.paid` com `transaction_id` e status `PAID` ao `postback`; validar um token aleatório exclusivo por cobrança, atualizar o pedido de modo idempotente e responder ao cliente no botão “Já paguei — verificar” consultando o estado do servidor. O botão nunca marca o pedido como pago diretamente.
 - [x] Interface do resultado do PIX preparada — Resultado do pagamento em viewport inteira e centralizado, rolagem vertical sem lateral; esconder somente a frase sobre o processamento pela Pixgate. Preservar o QR, seu conteúdo, o código copia e cola e os handlers de pagamento já validados.
 - [x] Atendimento WhatsApp — Usar o número `+55 47 92006-6015` nos links do site; exibir botão flutuante com ícone WhatsApp e controle “×” para dispensá-lo, além de botão/link visível “Entrar em contato” que abre o mesmo atendimento.
-- [ ] Publicação desta correção de layout e suporte — Aguardar autorização específica para mesclar e implantar no Render.
+- [x] Publicação da correção de layout e suporte — PR #3 mesclado e implantado no Render.
+- [x] Reajuste de preços preparado — Aplicar aumento mínimo de 30% e arredondar para cima ao próximo final `,90`: Lipoless e Tirzec R$ 629,90; Gluconex R$ 672,90; Tirzedral R$ 393,90; Slimex R$ 637,90; T.G. 15mg R$ 708,90; GHK-Cu R$ 584,90.
+- [ ] Publicação do reajuste — Aguardar autorização para mesclar no `main`, que aciona deploy automático do Render.
