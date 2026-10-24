@@ -37,9 +37,16 @@
         <p class="section-kicker">Acesso protegido</p>
         <h2 id="admin-login-title">Entrar no painel</h2>
         <form id="admin-login-form" autocomplete="on">
-          <label class="form-field" for="admin-password">Senha administrativa
-            <input id="admin-password" name="password" type="password" autocomplete="current-password" maxlength="256" required />
-          </label>
+          <div class="form-field admin-password-field">
+            <label for="admin-password">Senha administrativa</label>
+            <div class="admin-password-input-wrap">
+              <input id="admin-password" name="password" type="password" autocomplete="current-password" maxlength="256" aria-describedby="admin-password-count" required />
+              <button class="admin-password-toggle" id="admin-password-toggle" type="button" aria-label="Mostrar senha" aria-pressed="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2.2 12s3.4-6.3 9.8-6.3 9.8 6.3 9.8 6.3-3.4 6.3-9.8 6.3S2.2 12 2.2 12Z"/><circle cx="12" cy="12" r="2.8"/></svg>
+              </button>
+            </div>
+            <p class="admin-password-count" id="admin-password-count">0 caracteres</p>
+          </div>
           <p class="admin-message" id="admin-login-message" role="alert" aria-live="polite" hidden></p>
           <button class="button button-primary admin-action-button" id="admin-login-button" type="submit">Entrar</button>
         </form>

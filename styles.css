@@ -394,6 +394,14 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 .admin-card { max-width: 480px; padding: clamp(22px, 4vw, 32px); border: 1px solid #d9e2da; border-radius: 18px; background: var(--white); box-shadow: var(--shadow); }
 .admin-card h2, .admin-orders-heading h2 { margin-bottom: 18px; font-size: 25px; font-weight: 800; letter-spacing: -.055em; }
 #admin-login-form { display: grid; gap: 15px; }
+.admin-password-field > label { color: var(--ink-soft); font-size: 11px; font-weight: 700; }
+.admin-password-input-wrap { position: relative; }
+.admin-password-input-wrap input { padding-right: 58px; }
+.admin-password-toggle { position: absolute; top: 50%; right: 5px; display: grid; width: 42px; height: 42px; place-items: center; padding: 0; transform: translateY(-50%); border: 0; border-radius: 9px; color: var(--green-dark); background: transparent; cursor: pointer; }
+.admin-password-toggle:hover, .admin-password-toggle:focus-visible { background: var(--mint-soft); }
+.admin-password-toggle:focus-visible { outline: 2px solid var(--green); outline-offset: 1px; }
+.admin-password-toggle svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.admin-password-count { margin: -2px 0 0; color: #63776e; font-size: 11px; font-weight: 500; }
 .admin-action-button { width: 100%; border: 0; cursor: pointer; }
 .admin-action-button:disabled { cursor: wait; opacity: .65; }
 .admin-message { min-height: 18px; margin: 0 0 12px; color: #60756b; font-size: 11px; line-height: 1.5; }
