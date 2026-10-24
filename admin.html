@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="theme-color" content="#f6f6ef" />
-    <title>Vitta Farm | Painel de pedidos</title>
+    <title>Vitta Farm | Painel administrativo</title>
     <link rel="icon" href="./images/vitta-mark.png" type="image/png" />
     <link rel="stylesheet" href="./styles.css" />
     <script src="./admin.js" defer></script>
@@ -29,8 +29,8 @@
     <main class="admin-shell page-shell">
       <div class="admin-heading">
         <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> Área privada</p>
-        <h1>Pedidos Vitta</h1>
-        <p class="admin-intro">Consulte pedidos e endereços enviados no checkout. O status da cobrança começa pendente e precisa ser conferido no painel Pixgate.</p>
+        <h1>Pedidos e clientes</h1>
+        <p class="admin-intro">Consulte pedidos e cadastros protegidos por senha. Telefones aparecem apenas quando o cliente autorizou ofertas pelo WhatsApp. Confirme pagamentos no painel Pixgate.</p>
       </div>
 
       <section class="admin-card admin-login-card" id="admin-login-view" aria-labelledby="admin-login-title">
@@ -75,6 +75,34 @@
           </table>
         </div>
         <p class="admin-footnote">Os pedidos são listados do mais recente ao mais antigo (máximo de 200). CPF/CNPJ não é armazenado neste site. “Pendente” ou “Em conferência” não significa pagamento confirmado nem entrega concluída.</p>
+      </section>
+
+      <section class="admin-orders-section admin-customers-section" id="admin-customers-view" aria-labelledby="admin-customers-title" hidden>
+        <div class="admin-orders-heading">
+          <div>
+            <p class="section-kicker">Contas de clientes</p>
+            <h2 id="admin-customers-title">Clientes e contatos</h2>
+          </div>
+          <button class="admin-secondary-button" id="refresh-customers" type="button">Atualizar clientes</button>
+        </div>
+        <p class="admin-message" id="admin-customers-message" role="status" aria-live="polite"></p>
+        <div class="admin-table-scroll">
+          <table class="admin-table admin-customers-table">
+            <caption class="visually-hidden">E-mails, telefones de contato dos pedidos e estado de autorização para ofertas pelo WhatsApp</caption>
+            <thead>
+              <tr>
+                <th scope="col">Cliente</th>
+                <th scope="col">E-mail</th>
+                <th scope="col">Telefone de contato</th>
+                <th scope="col">Autorização WhatsApp</th>
+                <th scope="col">Pedidos</th>
+                <th scope="col">Cadastro</th>
+              </tr>
+            </thead>
+            <tbody id="admin-customers-body"></tbody>
+          </table>
+        </div>
+        <p class="admin-footnote">Telefone de contato é exibido para atendimento do pedido. O link clicável do WhatsApp aparece somente com autorização promocional ativa; o cliente pode cancelar em Minha conta.</p>
       </section>
     </main>
 

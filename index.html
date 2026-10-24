@@ -172,6 +172,13 @@
             <label class="form-field" for="customer-password-confirmation">Confirme sua senha
               <input id="customer-password-confirmation" name="passwordConfirmation" type="password" autocomplete="new-password" minlength="6" maxlength="128" required />
             </label>
+            <label class="form-field" for="customer-phone">Telefone / WhatsApp
+              <input id="customer-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="24" placeholder="(47) 92000-0000" required />
+            </label>
+            <label class="consent-field marketing-consent-field">
+              <input id="whatsapp-marketing-consent" name="whatsappMarketingConsent" type="checkbox" />
+              <span>Quero receber ofertas e novidades da Vitta Farm pelo WhatsApp. Opcional; posso cancelar em Minha conta.</span>
+            </label>
             <p class="account-checkout-hint">Na primeira compra, seu acesso será criado. Se já tem conta, use a mesma senha. <a href="/conta">Entrar pela minha conta</a></p>
             <div class="shipping-notice" role="note"><strong>Envio grátis</strong><span>Frete R$ 0,00 — não será acrescentado ao PIX.</span></div>
             <fieldset class="address-fieldset">
@@ -208,7 +215,7 @@
             <details class="checkout-terms" id="checkout-terms-details">
               <summary>Termos de compra e privacidade</summary>
               <div class="checkout-terms-content">
-                <p>Nome e CPF/CNPJ são enviados à Pixgate para criar a cobrança. CPF/CNPJ e código PIX copia e cola não são gravados pelo site. Nome e endereço são guardados para atender o pedido; o endereço não é enviado à Pixgate. O e-mail é usado para acesso à conta e acompanhamento. A senha é protegida por hash e não é guardada em texto aberto.</p>
+                <p>Nome e CPF/CNPJ são enviados à Pixgate para criar a cobrança. CPF/CNPJ e código PIX copia e cola não são gravados pelo site. Nome, endereço e telefone são guardados para atender o pedido; endereço e telefone não são enviados à Pixgate. O e-mail é usado para acesso à conta e acompanhamento. Ofertas pelo WhatsApp só são enviadas se você marcar a autorização opcional, que pode ser cancelada em Minha conta. A senha é protegida por hash e não é guardada em texto aberto.</p>
                 <p>Na busca automática de endereço, somente o CEP informado é consultado no ViaCEP.</p>
               </div>
             </details>

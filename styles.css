@@ -270,6 +270,7 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 .dialog-privacy { margin: 0; }
 .consent-field { display: flex; align-items: flex-start; gap: 10px; color: #536a60; font-size: 11px; line-height: 1.55; cursor: pointer; }
 .consent-field input { width: 17px; height: 17px; flex: 0 0 auto; accent-color: var(--green); }
+.marketing-consent-field { margin: 0; }
 .checkout-terms { border: 1px solid #dce6dd; border-radius: 11px; background: #f7f9f5; color: #61746b; }
 .checkout-terms summary { padding: 11px 13px; color: var(--green-dark); font-size: 11px; font-weight: 700; cursor: pointer; }
 .checkout-terms-content { padding: 0 13px 11px; font-size: 11px; line-height: 1.55; }
@@ -309,6 +310,8 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 .account-card { margin: 20px 0; padding: clamp(20px, 5vw, 30px); border: 1px solid #d5e1d7; border-radius: 18px; background: #fffefa; box-shadow: 0 12px 34px rgba(20, 55, 44, .06); }
 .account-card h2 { margin: 0 0 18px; color: var(--ink); font: 700 24px/1.2 Manrope, sans-serif; letter-spacing: -.04em; }
 .account-card form { display: grid; gap: 14px; }
+.account-marketing-settings { margin: 0 0 18px; padding: 14px; border: 1px solid #d7e4d9; border-radius: 12px; background: #f5faf5; }
+.account-marketing-settings p { margin: 0 0 10px; color: #536a60; font-size: 12px; line-height: 1.55; }
 .account-action { width: 100%; border: 0; cursor: pointer; }
 .account-action:disabled { opacity: .62; cursor: wait; }
 .account-footnote, .account-empty { margin: 16px 0 0; color: #61746b; font-size: 12px; line-height: 1.6; }
@@ -398,6 +401,7 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 .admin-message-error { color: #a3312b; }
 .admin-message-success { color: #315d4e; }
 .admin-orders-section { padding: clamp(18px, 3vw, 28px); border: 1px solid #d9e2da; border-radius: 18px; background: var(--white); box-shadow: var(--shadow); }
+.admin-customers-section { margin-top: 24px; }
 .admin-orders-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 14px; }
 .admin-orders-heading .section-kicker { margin-bottom: 6px; }
 .admin-orders-heading h2 { margin-bottom: 0; }
@@ -407,6 +411,7 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 .admin-secondary-button:disabled { cursor: wait; opacity: .6; }
 .admin-table-scroll { overflow-x: auto; border: 1px solid #e0e7df; border-radius: 12px; }
 .admin-table { width: 100%; min-width: 1020px; border-collapse: collapse; text-align: left; }
+.admin-customers-table { min-width: 820px; }
 .admin-table th { padding: 12px 11px; color: #5d766a; background: #f1f6ef; font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .admin-table td { max-width: 230px; padding: 13px 11px; border-top: 1px solid #e5ebe4; color: #35594f; font-size: 10px; line-height: 1.55; vertical-align: top; white-space: pre-line; overflow-wrap: anywhere; }
 .admin-table tr:hover td { background: #fbfcf8; }

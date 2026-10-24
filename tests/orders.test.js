@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const catalog = require('../catalog.json');
-const { markOrderPaidByTransactionId, processCheckout } = require('../src/orders');
+const { listCustomersForAdmin, markOrderPaidByTransactionId, processCheckout } = require('../src/orders');
 
 const products = Object.fromEntries(catalog.products.map((product) => [product.id, product]));
 const checkout = () => ({
@@ -11,6 +11,7 @@ const checkout = () => ({
   nome: 'Cliente de Teste',
   cpf: '11144477735',
   email: 'cliente@example.com',
+  phone: '(47) 92000-6015',
   password: '123456',
   passwordConfirmation: '123456',
   device: 'web',
@@ -180,4 +181,41 @@ test('só confirma pagamento com o token secreto correto e aceita postback repet
   assert.equal(updateCalls, 2);
   assert.equal(lookupCalls, 1);
   assert.deepEqual(await markOrderPaidByTransactionId(pool, 'pixgate-mock-1', 'token-forjado'), { known: false, updated: false });
+});
+
+
+test('lista administrativa mostra telefone de pedido e estado separado de autorização promocional', async () => {
+  const pool = {
+    async execute(sql) {
+      assert.match(sql, /FROM customer_accounts customers/);
+      assert.match(sql, /customers\.phone/);
+      assert.match(sql, /whatsapp_marketing_consent_at IS NOT NULL/);
+      return [[
+        {
+          email: 'autorizado@example.com',
+          display_name: 'Cliente Autorizado',
+          phone: '+5547920006015',
+          marketing_consent_at: new Date('2026-10-24T12:00:00Z'),
+          order_count: 2,
+          created_at: new Date('2026-10-20T12:00:00Z'),
+        },
+        {
+          email: 'sem-consentimento@example.com',
+          display_name: 'Cliente sem opt-in',
+          phone: '+5547999998888',
+          marketing_consent_at: null,
+          order_count: 1,
+          created_at: new Date('2026-10-21T12:00:00Z'),
+        },
+      ], []];
+    },
+  };
+  const customers = await listCustomersForAdmin(pool);
+  assert.equal(customers.length, 2);
+  assert.equal(customers[0].email, 'autorizado@example.com');
+  assert.equal(customers[0].phone, '+5547920006015');
+  assert.equal(customers[0].whatsappMarketingConsent, true);
+  assert.equal(customers[1].email, 'sem-consentimento@example.com');
+  assert.equal(customers[1].phone, '+5547999998888');
+  assert.equal(customers[1].whatsappMarketingConsent, false);
 });

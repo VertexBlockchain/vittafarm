@@ -7,6 +7,9 @@ const ordersMessage = document.querySelector('#account-orders-message');
 const ordersList = document.querySelector('#account-order-list');
 const emailLabel = document.querySelector('#account-email-label');
 const logoutButton = document.querySelector('#account-logout');
+const marketingSettings = document.querySelector('#account-marketing-settings');
+const marketingStatus = document.querySelector('#account-marketing-status');
+const marketingOptOutButton = document.querySelector('#account-marketing-opt-out');
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
 function setMessage(element, message = '', isError = false) {
@@ -69,6 +72,10 @@ async function loadOrders(customer) {
   loginPanel.hidden = true;
   ordersPanel.hidden = false;
   emailLabel.textContent = customer.email;
+  marketingSettings.hidden = !customer.whatsappMarketingConsent;
+  marketingStatus.textContent = customer.whatsappMarketingConsent
+    ? `Você autorizou ofertas pelo WhatsApp${customer.phone ? ` neste telefone: ${customer.phone}` : ''}.`
+    : '';
   setMessage(ordersMessage, 'Carregando seus pedidos…');
   try {
     const data = await api('/api/customer/orders');
@@ -121,7 +128,23 @@ logoutButton.addEventListener('click', async () => {
   }
   ordersPanel.hidden = true;
   loginPanel.hidden = false;
+  marketingSettings.hidden = true;
+  marketingStatus.textContent = '';
   logoutButton.disabled = false;
+});
+
+marketingOptOutButton.addEventListener('click', async () => {
+  marketingOptOutButton.disabled = true;
+  try {
+    await api('/api/customer/marketing-opt-out', { method: 'POST', body: JSON.stringify({}) });
+    marketingSettings.hidden = true;
+    marketingStatus.textContent = '';
+    setMessage(ordersMessage, 'Autorização para ofertas cancelada.');
+  } catch (error) {
+    setMessage(ordersMessage, error.message || 'Não foi possível atualizar sua autorização.', true);
+  } finally {
+    marketingOptOutButton.disabled = false;
+  }
 });
 
 restoreSession();

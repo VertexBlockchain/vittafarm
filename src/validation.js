@@ -2,7 +2,7 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3
 const ADDRESS_KEYS = new Set(['cep', 'street', 'number', 'complement', 'neighborhood', 'city', 'state']);
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CHECKOUT_KEYS = new Set([
-  'productId', 'checkoutRequestId', 'nome', 'cpf', 'email', 'password', 'passwordConfirmation', 'device', 'termsConsent', 'address',
+  'productId', 'checkoutRequestId', 'nome', 'cpf', 'email', 'phone', 'whatsappMarketingConsent', 'password', 'passwordConfirmation', 'device', 'termsConsent', 'address',
 ]);
 
 function hasRepeatedDigits(value) {
@@ -49,6 +49,16 @@ function normalizeText(value, maxLength) {
   return normalized;
 }
 
+function normalizeBrazilPhone(value) {
+  if (typeof value !== 'string' || value.length > 24) return null;
+  const phone = value.trim();
+  if (!phone || !/^[+\d\s().-]+$/.test(phone)) return null;
+  let digits = phone.replace(/\D/g, '');
+  if (digits.startsWith('55') && (digits.length === 12 || digits.length === 13)) digits = digits.slice(2);
+  if (!/^\d{10,11}$/.test(digits) || /^([0-9])\1+$/.test(digits)) return null;
+  return `+55${digits}`;
+}
+
 function invalid(message) {
   return { ok: false, error: message };
 }
@@ -85,6 +95,12 @@ function validateCheckout(body, products, shippingCents = 0) {
     return invalid('Crie uma senha com pelo menos 6 caracteres.');
   }
   if (body.passwordConfirmation !== body.password) return invalid('A confirmação da senha não corresponde.');
+  if (Object.hasOwn(body, 'whatsappMarketingConsent') && typeof body.whatsappMarketingConsent !== 'boolean') {
+    return invalid('Revise a autorização para mensagens pelo WhatsApp.');
+  }
+  const whatsappMarketingConsent = body.whatsappMarketingConsent === true;
+  const phone = normalizeBrazilPhone(body.phone);
+  if (!phone) return invalid('Informe um telefone brasileiro válido para contato sobre o pedido.');
 
   if (!['android', 'ios', 'web'].includes(body.device)) return invalid('Não foi possível identificar o dispositivo. Atualize a página.');
   if (body.termsConsent !== true) return invalid('Aceite os termos de compra e privacidade para continuar.');
@@ -122,6 +138,8 @@ function validateCheckout(body, products, shippingCents = 0) {
       nome: name,
       cpf,
       email,
+      phone,
+      whatsappMarketingConsent,
       device: body.device,
       address: {
         cep,
@@ -138,4 +156,4 @@ function validateCheckout(body, products, shippingCents = 0) {
   };
 }
 
-module.exports = { UUID_PATTERN, isValidCpf, isValidCnpj, isValidCpfOrCnpj, validateCheckout };
+module.exports = { UUID_PATTERN, isValidCpf, isValidCnpj, isValidCpfOrCnpj, normalizeBrazilPhone, validateCheckout };

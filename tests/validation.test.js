@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const catalog = require('../catalog.json');
-const { isValidCpf, isValidCnpj, validateCheckout } = require('../src/validation');
+const { isValidCpf, isValidCnpj, normalizeBrazilPhone, validateCheckout } = require('../src/validation');
 
 const products = Object.fromEntries(catalog.products.map((product) => [product.id, product]));
 const validCheckout = () => ({
@@ -10,10 +10,12 @@ const validCheckout = () => ({
   nome: 'Cliente de Teste',
   cpf: '11144477735',
   email: 'cliente@example.com',
+  phone: '(47) 92000-6015',
   password: '123456',
   passwordConfirmation: '123456',
   device: 'web',
   termsConsent: true,
+  whatsappMarketingConsent: false,
   address: {
     cep: '01001-000',
     street: 'Praça da Sé',
@@ -73,4 +75,28 @@ test('exige e-mail válido, senha de no mínimo seis caracteres e confirmação 
 
   const invalidEmail = { ...validCheckout(), email: 'sem-email' };
   assert.equal(validateCheckout(invalidEmail, products, 0).ok, false);
+});
+
+test('exige telefone válido para contato do pedido e separa consentimento promocional', () => {
+  const withConsent = {
+    ...validCheckout(),
+    phone: '(47) 92000-6015',
+    whatsappMarketingConsent: true,
+  };
+  const result = validateCheckout(withConsent, products, 0);
+  assert.equal(result.ok, true);
+  assert.equal(result.value.phone, '+5547920006015');
+  assert.equal(result.value.whatsappMarketingConsent, true);
+
+  const withoutConsent = validateCheckout({ ...validCheckout(), phone: '(47) 92000-6015' }, products, 0);
+  assert.equal(withoutConsent.ok, true);
+  assert.equal(withoutConsent.value.phone, '+5547920006015', 'telefone é guardado para contato sobre o pedido');
+  assert.equal(withoutConsent.value.whatsappMarketingConsent, false);
+
+  const missingPhone = { ...validCheckout(), phone: '' };
+  assert.equal(validateCheckout(missingPhone, products, 0).ok, false);
+
+  assert.equal(normalizeBrazilPhone('+55 47 92000-6015'), '+5547920006015');
+  assert.equal(normalizeBrazilPhone('123'), null);
+  assert.equal(validateCheckout({ ...withConsent, phone: '' }, products, 0).ok, false);
 });

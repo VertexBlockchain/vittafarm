@@ -6,6 +6,7 @@ const { getPool, pingDatabase, closePool } = require('./src/database');
 const {
   getCustomerOrderStatus,
   listCustomerOrders,
+  listCustomersForAdmin,
   markOrderPaidByTransactionId,
   processCheckout,
   listOrders,
@@ -21,6 +22,7 @@ const {
   getCustomerForSession,
   newCustomerSessionToken,
   readCustomerSessionToken,
+  revokeWhatsappMarketingConsent,
 } = require('./src/customer-auth');
 const {
   createSession,
@@ -102,8 +104,15 @@ async function readJson(req) {
   }
 }
 
+function configuredAdminPassword() {
+  return process.env.ORDERS_ADMIN_PASSWORD
+    || process.env.ADMIN_PANEL_PASSWORD
+    || process.env.ADMIN_PASSWORD
+    || '';
+}
+
 function isAdminEnabled() {
-  return passwordConfigured(process.env.ORDERS_ADMIN_PASSWORD)
+  return passwordConfigured(configuredAdminPassword())
     && process.env.ORDERS_ADMIN_ENABLED !== 'false';
 }
 
@@ -183,6 +192,8 @@ async function handleCashIn(req, res) {
       email: validation.value.email,
       password: body.password,
       displayName: validation.value.nome,
+      phone: validation.value.phone,
+      whatsappMarketingConsent: validation.value.whatsappMarketingConsent,
       allowCreate: true,
     });
   } catch (error) {
@@ -301,7 +312,12 @@ async function handleCustomer(req, res, pathname) {
       clearLoginFailures(key);
       return sendJson(res, 200, {
         authenticated: true,
-        customer: { email: customer.email, displayName: customer.displayName },
+        customer: {
+          email: customer.email,
+          displayName: customer.displayName,
+          phone: customer.phone || '',
+          whatsappMarketingConsent: customer.whatsappMarketingConsent,
+        },
       }, { 'Set-Cookie': customerSessionCookie(token) });
     } catch {
       return sendJson(res, 503, { error: 'Não foi possível iniciar sua sessão agora.' });
@@ -321,7 +337,7 @@ async function handleCustomer(req, res, pathname) {
     return sendJson(res, 200, { authenticated: false }, { 'Set-Cookie': expiredCustomerSessionCookie() });
   }
 
-  if (req.method !== 'GET') {
+  if (req.method !== 'GET' && pathname !== '/api/customer/marketing-opt-out') {
     res.setHeader('Allow', 'GET');
     return sendJson(res, 405, { error: 'Use GET para consultar sua conta.' });
   }
@@ -338,10 +354,28 @@ async function handleCustomer(req, res, pathname) {
     return sendJson(res, 401, { authenticated: false }, { 'Set-Cookie': expiredCustomerSessionCookie() });
   }
 
+  if (pathname === '/api/customer/marketing-opt-out') {
+    if (req.method !== 'POST') {
+      res.setHeader('Allow', 'POST');
+      return sendJson(res, 405, { error: 'Use POST para cancelar as mensagens promocionais.' });
+    }
+    try {
+      await revokeWhatsappMarketingConsent(pool, customer.id);
+      return sendJson(res, 200, { whatsappMarketingConsent: false });
+    } catch {
+      return sendJson(res, 503, { error: 'Não foi possível atualizar sua autorização agora.' });
+    }
+  }
+
   if (pathname === '/api/customer/session') {
     return sendJson(res, 200, {
       authenticated: true,
-      customer: { email: customer.email, displayName: customer.display_name },
+      customer: {
+        email: customer.email,
+        displayName: customer.display_name,
+        phone: customer.phone || '',
+        whatsappMarketingConsent: Boolean(customer.whatsapp_marketing_consent_at),
+      },
     });
   }
   if (pathname === '/api/customer/orders') {
@@ -367,7 +401,7 @@ async function handleCustomer(req, res, pathname) {
 }
 
 async function handleAdmin(req, res, pathname) {
-  if (!isAdminEnabled()) return sendJson(res, 503, { error: 'O painel administrativo está desabilitado nesta prévia.' });
+  if (!isAdminEnabled()) return sendJson(res, 503, { error: 'O painel administrativo está desabilitado no servidor.' });
 
   if (pathname === '/api/admin/login') {
     if (req.method !== 'POST') {
@@ -391,7 +425,7 @@ async function handleAdmin(req, res, pathname) {
       return sendJson(res, 401, { error: 'Senha inválida.' });
     }
 
-    const expectedPassword = process.env.ORDERS_ADMIN_PASSWORD;
+    const expectedPassword = configuredAdminPassword();
     if (!passwordConfigured(expectedPassword)) {
       return sendJson(res, 503, { error: 'O painel ainda não está configurado com uma senha segura.' });
     }
@@ -430,8 +464,10 @@ async function handleAdmin(req, res, pathname) {
       res.setHeader('Allow', 'GET');
       return sendJson(res, 405, { error: 'Use GET para consultar a sessão.' });
     }
+    const token = readSessionToken(req);
+    if (!token) return sendJson(res, 401, { authenticated: false });
     const pool = getPool();
-    const authenticated = await isSessionValid(pool, readSessionToken(req)).catch(() => false);
+    const authenticated = await isSessionValid(pool, token).catch(() => false);
     return authenticated
       ? sendJson(res, 200, { authenticated: true })
       : sendJson(res, 401, { authenticated: false });
@@ -442,12 +478,28 @@ async function handleAdmin(req, res, pathname) {
       res.setHeader('Allow', 'GET');
       return sendJson(res, 405, { error: 'Use GET para consultar pedidos.' });
     }
+    if (!readSessionToken(req)) return sendJson(res, 401, { error: 'Autenticação necessária.' });
     const pool = getPool();
     if (!await requireAdmin(req, res, pool)) return;
     try {
       return sendJson(res, 200, { orders: await listOrders(pool) });
     } catch {
       return sendJson(res, 503, { error: 'Não foi possível consultar os pedidos agora.' });
+    }
+  }
+
+  if (pathname === '/api/admin/customers') {
+    if (req.method !== 'GET') {
+      res.setHeader('Allow', 'GET');
+      return sendJson(res, 405, { error: 'Use GET para consultar clientes.' });
+    }
+    if (!readSessionToken(req)) return sendJson(res, 401, { error: 'Autenticação necessária.' });
+    const pool = getPool();
+    if (!await requireAdmin(req, res, pool)) return;
+    try {
+      return sendJson(res, 200, { customers: await listCustomersForAdmin(pool) });
+    } catch {
+      return sendJson(res, 503, { error: 'Não foi possível consultar os clientes agora.' });
     }
   }
 

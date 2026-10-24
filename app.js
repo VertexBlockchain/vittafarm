@@ -32,6 +32,8 @@ const paymentCheckMessage = document.querySelector('#payment-check-message');
 const nameInput = document.querySelector('#customer-name');
 const cpfInput = document.querySelector('#customer-cpf');
 const emailInput = document.querySelector('#customer-email');
+const phoneInput = document.querySelector('#customer-phone');
+const whatsappMarketingConsentInput = document.querySelector('#whatsapp-marketing-consent');
 const passwordInput = document.querySelector('#customer-password');
 const passwordConfirmationInput = document.querySelector('#customer-password-confirmation');
 const cepInput = document.querySelector('#customer-cep');
@@ -429,6 +431,11 @@ async function submitCheckout(event) {
     termsConsentInput.focus();
     return;
   }
+  if (whatsappMarketingConsentInput.checked && !phoneInput.value.trim()) {
+    setCheckoutError('Informe seu telefone para receber ofertas pelo WhatsApp.');
+    phoneInput.focus();
+    return;
+  }
 
   const address = {
     cep: cepInput.value.trim(),
@@ -453,6 +460,8 @@ async function submitCheckout(event) {
         nome,
         cpf,
         email: emailInput.value.trim(),
+        phone: phoneInput.value.trim(),
+        whatsappMarketingConsent: whatsappMarketingConsentInput.checked,
         password: passwordInput.value,
         passwordConfirmation: passwordConfirmationInput.value,
         device: detectDevice(),

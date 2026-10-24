@@ -247,6 +247,36 @@ async function listOrders(pool) {
   }));
 }
 
+async function listCustomersForAdmin(pool) {
+  const [rows] = await pool.execute(
+    `SELECT customers.id, customers.email, customers.display_name, customers.phone, customers.created_at,
+       CASE
+         WHEN customers.whatsapp_marketing_consent_at IS NOT NULL
+           AND customers.whatsapp_marketing_revoked_at IS NULL
+         THEN customers.whatsapp_marketing_consent_at ELSE NULL
+       END AS marketing_consent_at,
+       COALESCE(order_totals.order_count, 0) AS order_count
+     FROM customer_accounts customers
+     LEFT JOIN (
+       SELECT customer_id, COUNT(*) AS order_count
+         FROM orders
+        WHERE customer_id IS NOT NULL
+        GROUP BY customer_id
+     ) order_totals ON order_totals.customer_id = customers.id
+     ORDER BY customers.created_at DESC
+     LIMIT 500`,
+  );
+  return rows.map((row) => ({
+    email: row.email,
+    displayName: row.display_name,
+    phone: row.phone || '',
+    whatsappMarketingConsent: Boolean(row.marketing_consent_at),
+    orderCount: Number(row.order_count),
+    createdAt: toIso(row.created_at),
+    consentAt: row.marketing_consent_at ? toIso(row.marketing_consent_at) : '',
+  }));
+}
+
 async function listCustomerOrders(pool, customerId) {
   const [rows] = await pool.execute(
     `SELECT id, product_name, total_cents, payment_status, created_at
@@ -301,6 +331,7 @@ async function markOrderPaidByTransactionId(pool, transactionId, webhookToken) {
 module.exports = {
   getCustomerOrderStatus,
   listCustomerOrders,
+  listCustomersForAdmin,
   listOrders,
   markOrderPaidByTransactionId,
   processCheckout,

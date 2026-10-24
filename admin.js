@@ -1,5 +1,6 @@
 const loginView = document.querySelector('#admin-login-view');
 const ordersView = document.querySelector('#admin-orders-view');
+const customersView = document.querySelector('#admin-customers-view');
 const loginForm = document.querySelector('#admin-login-form');
 const passwordInput = document.querySelector('#admin-password');
 const loginButton = document.querySelector('#admin-login-button');
@@ -7,6 +8,9 @@ const loginMessage = document.querySelector('#admin-login-message');
 const ordersMessage = document.querySelector('#admin-orders-message');
 const ordersBody = document.querySelector('#admin-orders-body');
 const refreshButton = document.querySelector('#refresh-orders');
+const customersMessage = document.querySelector('#admin-customers-message');
+const customersBody = document.querySelector('#admin-customers-body');
+const refreshCustomersButton = document.querySelector('#refresh-customers');
 const logoutButton = document.querySelector('#admin-logout');
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -35,6 +39,7 @@ async function api(path, options = {}) {
 function showLogin(message = '', isError = false) {
   loginView.hidden = false;
   ordersView.hidden = true;
+  customersView.hidden = true;
   passwordInput.value = '';
   setMessage(loginMessage, message, isError);
 }
@@ -42,6 +47,7 @@ function showLogin(message = '', isError = false) {
 function showOrders() {
   loginView.hidden = true;
   ordersView.hidden = false;
+  customersView.hidden = false;
   setMessage(loginMessage, '');
 }
 
@@ -92,6 +98,34 @@ function createOrderRow(order) {
   return row;
 }
 
+function createCustomerRow(customer) {
+  const row = document.createElement('tr');
+  addCell(row, customer.displayName);
+  addCell(row, customer.email);
+
+  const phoneCell = document.createElement('td');
+  const digits = String(customer.phone || '').replace(/\D/g, '');
+  if (customer.whatsappMarketingConsent && /^55\d{10,11}$/.test(digits)) {
+    const link = document.createElement('a');
+    link.href = `https://wa.me/${digits}`;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = customer.phone;
+    link.setAttribute('aria-label', `Abrir WhatsApp autorizado de ${customer.displayName || customer.email}`);
+    phoneCell.append(link);
+  } else {
+    phoneCell.textContent = customer.phone || '—';
+  }
+  row.append(phoneCell);
+
+  addCell(row, customer.whatsappMarketingConsent
+    ? `Autorizou em ${dateLabel(customer.consentAt)}`
+    : 'Não autorizou');
+  addCell(row, String(customer.orderCount ?? 0));
+  addCell(row, dateLabel(customer.createdAt));
+  return row;
+}
+
 async function loadOrders() {
   refreshButton.disabled = true;
   setMessage(ordersMessage, 'Carregando pedidos…');
@@ -120,6 +154,38 @@ async function loadOrders() {
   }
 }
 
+async function loadCustomers() {
+  refreshCustomersButton.disabled = true;
+  setMessage(customersMessage, 'Carregando clientes…');
+  try {
+    const result = await api('/api/admin/customers', { method: 'GET' });
+    const customers = Array.isArray(result.customers) ? result.customers : [];
+    customersBody.replaceChildren();
+    if (customers.length === 0) {
+      const row = document.createElement('tr');
+      const cell = document.createElement('td');
+      cell.colSpan = 6;
+      cell.className = 'admin-empty-state';
+      cell.textContent = 'Nenhuma conta registrada.';
+      row.append(cell);
+      customersBody.append(row);
+      setMessage(customersMessage, '0 clientes');
+    } else {
+      customers.forEach((customer) => customersBody.append(createCustomerRow(customer)));
+      setMessage(customersMessage, `${customers.length} cliente${customers.length === 1 ? '' : 's'} carregado${customers.length === 1 ? '' : 's'}.`);
+    }
+  } catch (error) {
+    if (/sessão|autenticação/i.test(error.message)) return showLogin('Sua sessão expirou. Entre novamente.', true);
+    setMessage(customersMessage, error.message || 'Não foi possível carregar os clientes.', true);
+  } finally {
+    refreshCustomersButton.disabled = false;
+  }
+}
+
+async function loadDashboard() {
+  await Promise.all([loadOrders(), loadCustomers()]);
+}
+
 loginForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   setMessage(loginMessage, '');
@@ -129,7 +195,7 @@ loginForm.addEventListener('submit', async (event) => {
     await api('/api/admin/login', { method: 'POST', body: JSON.stringify({ password: passwordInput.value }) });
     passwordInput.value = '';
     showOrders();
-    await loadOrders();
+    await loadDashboard();
   } catch (error) {
     setMessage(loginMessage, error.message || 'Não foi possível entrar.', true);
     passwordInput.select();
@@ -140,6 +206,7 @@ loginForm.addEventListener('submit', async (event) => {
 });
 
 refreshButton.addEventListener('click', loadOrders);
+refreshCustomersButton.addEventListener('click', loadCustomers);
 logoutButton.addEventListener('click', async () => {
   try {
     await api('/api/admin/logout', { method: 'POST' });
@@ -147,6 +214,7 @@ logoutButton.addEventListener('click', async () => {
     // A tela de login remove o conteúdo visível mesmo se a sessão já tiver expirado.
   }
   ordersBody.replaceChildren();
+  customersBody.replaceChildren();
   showLogin('Você saiu do painel.');
 });
 
@@ -154,7 +222,7 @@ async function initialize() {
   try {
     await api('/api/admin/session', { method: 'GET' });
     showOrders();
-    await loadOrders();
+    await loadDashboard();
   } catch {
     showLogin();
   }
