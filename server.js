@@ -103,11 +103,14 @@ async function readJson(req) {
   }
 }
 
+function configuredAdminPasswordEntry() {
+  const key = ['ORDERS_ADMIN_PASSWORD', 'ADMIN_PANEL_PASSWORD', 'ADMIN_PASSWORD']
+    .find((name) => process.env[name]);
+  return { key: key || 'none', value: key ? process.env[key] : '' };
+}
+
 function configuredAdminPassword() {
-  return process.env.ORDERS_ADMIN_PASSWORD
-    || process.env.ADMIN_PANEL_PASSWORD
-    || process.env.ADMIN_PASSWORD
-    || '';
+  return configuredAdminPasswordEntry().value;
 }
 
 function isAdminEnabled() {
@@ -418,17 +421,38 @@ async function handleAdmin(req, res, pathname) {
     } catch (error) {
       return sendJson(res, error.statusCode || 400, { error: error.message });
     }
-    if (Object.keys(body).some((field) => field !== 'password')
-      || typeof body.password !== 'string' || body.password.length > 256) {
+    const hasUnexpectedFields = Object.keys(body).some((field) => field !== 'password');
+    if (hasUnexpectedFields || typeof body.password !== 'string' || body.password.length > 256) {
+      console.warn('[admin-auth] ' + JSON.stringify({
+        event: 'login_rejected',
+        reason: 'invalid_payload',
+        hasUnexpectedFields,
+        passwordFieldType: typeof body.password,
+        submittedPasswordLength: typeof body.password === 'string' ? body.password.length : null,
+      }));
       recordLoginFailure(key);
       return sendJson(res, 401, { error: 'Senha inválida.' });
     }
 
-    const expectedPassword = configuredAdminPassword();
+    const passwordEntry = configuredAdminPasswordEntry();
+    const expectedPassword = passwordEntry.value;
     if (!passwordConfigured(expectedPassword)) {
+      console.warn('[admin-auth] ' + JSON.stringify({
+        event: 'login_unavailable',
+        reason: 'password_not_configured',
+        passwordVariable: passwordEntry.key,
+        configuredPasswordLength: expectedPassword.length,
+      }));
       return sendJson(res, 503, { error: 'O painel ainda não está configurado com uma senha segura.' });
     }
     if (!passwordMatches(expectedPassword, body.password)) {
+      console.warn('[admin-auth] ' + JSON.stringify({
+        event: 'login_rejected',
+        reason: 'password_mismatch',
+        passwordVariable: passwordEntry.key,
+        configuredPasswordLength: expectedPassword.length,
+        submittedPasswordLength: body.password.length,
+      }));
       recordLoginFailure(key);
       return sendJson(res, 401, { error: 'Senha inválida.' });
     }
