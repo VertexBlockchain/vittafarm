@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="theme-color" content="#f6f6ef" />
-    <title>Vitta Farm | Painel de pedidos</title>
+    <title>Vitta Farm | Clientes</title>
     <link rel="icon" href="./images/vitta-mark.png" type="image/png" />
     <link rel="stylesheet" href="./styles.css" />
     <script src="./admin.js" defer></script>
@@ -29,8 +29,8 @@
     <main class="admin-shell page-shell">
       <div class="admin-heading">
         <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> Área privada</p>
-        <h1>Pedidos Vitta</h1>
-        <p class="admin-intro">Consulte pedidos e endereços enviados no checkout. O status da cobrança começa pendente e precisa ser conferido no painel Pixgate.</p>
+        <h1>Clientes cadastrados</h1>
+        <p class="admin-intro">Consulte nome, contato e situação do pedido dos clientes que enviaram o checkout. Filtre quem ainda não tem pagamento confirmado. O contato para ofertas pelo WhatsApp só fica clicável quando há autorização ativa.</p>
       </div>
 
       <section class="admin-card admin-login-card" id="admin-login-view" aria-labelledby="admin-login-title">
@@ -45,36 +45,58 @@
         </form>
       </section>
 
-      <section class="admin-orders-section" id="admin-orders-view" aria-labelledby="admin-orders-title" hidden>
+      <section class="admin-orders-section" id="admin-customers-view" aria-labelledby="admin-customers-title" hidden>
         <div class="admin-orders-heading">
           <div>
-            <p class="section-kicker">Consulta privada</p>
-            <h2 id="admin-orders-title">Pedidos recebidos</h2>
+            <p class="section-kicker">Contatos cadastrados</p>
+            <h2 id="admin-customers-title">Clientes e oportunidades</h2>
           </div>
           <div class="admin-actions">
-            <button class="admin-secondary-button" id="refresh-orders" type="button">Atualizar</button>
+            <button class="admin-secondary-button" id="refresh-customers" type="button">Atualizar</button>
             <button class="admin-secondary-button" id="admin-logout" type="button">Sair</button>
           </div>
         </div>
-        <p class="admin-message" id="admin-orders-message" role="status" aria-live="polite"></p>
+
+        <div class="admin-customer-filters" role="search">
+          <label for="customer-search">Buscar nome, e-mail ou telefone
+            <input id="customer-search" type="search" autocomplete="off" placeholder="Digite para filtrar" />
+          </label>
+          <label for="customer-order-filter">Situação do pedido
+            <select id="customer-order-filter">
+              <option value="all">Todos os clientes</option>
+              <option value="open">Sem pagamento confirmado</option>
+              <option value="paid">Pagamento confirmado</option>
+              <option value="no-order">Sem pedido enviado</option>
+            </select>
+          </label>
+          <label for="customer-marketing-filter">Ofertas pelo WhatsApp
+            <select id="customer-marketing-filter">
+              <option value="all">Todos</option>
+              <option value="authorized">Autorização ativa</option>
+            </select>
+          </label>
+        </div>
+
+        <p class="admin-message" id="admin-customers-message" role="status" aria-live="polite"></p>
         <div class="admin-table-scroll">
-          <table class="admin-table">
-            <caption class="visually-hidden">Pedidos, produtos, endereços e situação da cobrança</caption>
+          <table class="admin-table admin-customers-table">
+            <caption class="visually-hidden">Clientes cadastrados, contatos e situação do pedido mais recente</caption>
             <thead>
               <tr>
-                <th scope="col">Pedido / data</th>
-                <th scope="col">Produto</th>
                 <th scope="col">Cliente</th>
-                <th scope="col">Endereço de entrega</th>
-                <th scope="col">Total</th>
-                <th scope="col">Cobrança</th>
-                <th scope="col">Pixgate</th>
+                <th scope="col">E-mail</th>
+                <th scope="col">Telefone de contato</th>
+                <th scope="col">Último pedido</th>
+                <th scope="col">Pagamento</th>
+                <th scope="col">Pedidos</th>
+                <th scope="col">Cadastro</th>
+                <th scope="col">Ofertas WhatsApp</th>
               </tr>
             </thead>
-            <tbody id="admin-orders-body"></tbody>
+            <tbody id="admin-customers-body"></tbody>
           </table>
         </div>
-        <p class="admin-footnote">Os pedidos são listados do mais recente ao mais antigo (máximo de 200). CPF/CNPJ não é armazenado neste site. “Pendente” ou “Em conferência” não significa pagamento confirmado nem entrega concluída.</p>
+        <p class="admin-footnote">“Sem pagamento confirmado” inclui pedidos aguardando o Pix e cadastros sem pedido enviado; não significa que o cliente abandonou a compra. O link de WhatsApp para ofertas é exibido somente com autorização ativa.</p>
       </section>
     </main>
 

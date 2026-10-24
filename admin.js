@@ -1,14 +1,17 @@
 const loginView = document.querySelector('#admin-login-view');
-const ordersView = document.querySelector('#admin-orders-view');
+const customersView = document.querySelector('#admin-customers-view');
 const loginForm = document.querySelector('#admin-login-form');
 const passwordInput = document.querySelector('#admin-password');
 const loginButton = document.querySelector('#admin-login-button');
 const loginMessage = document.querySelector('#admin-login-message');
-const ordersMessage = document.querySelector('#admin-orders-message');
-const ordersBody = document.querySelector('#admin-orders-body');
-const refreshButton = document.querySelector('#refresh-orders');
+const customersMessage = document.querySelector('#admin-customers-message');
+const customersBody = document.querySelector('#admin-customers-body');
+const refreshCustomersButton = document.querySelector('#refresh-customers');
 const logoutButton = document.querySelector('#admin-logout');
-const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+const searchInput = document.querySelector('#customer-search');
+const orderFilter = document.querySelector('#customer-order-filter');
+const marketingFilter = document.querySelector('#customer-marketing-filter');
+let allCustomers = [];
 
 function setMessage(element, message, isError = false) {
   element.textContent = message;
@@ -34,14 +37,14 @@ async function api(path, options = {}) {
 
 function showLogin(message = '', isError = false) {
   loginView.hidden = false;
-  ordersView.hidden = true;
+  customersView.hidden = true;
   passwordInput.value = '';
   setMessage(loginMessage, message, isError);
 }
 
-function showOrders() {
+function showCustomers() {
   loginView.hidden = true;
-  ordersView.hidden = false;
+  customersView.hidden = false;
   setMessage(loginMessage, '');
 }
 
@@ -58,65 +61,109 @@ function dateLabel(value) {
   return Number.isNaN(date.getTime()) ? 'Data indisponível' : date.toLocaleString('pt-BR');
 }
 
-function addressLabel(address) {
-  const street = [address.street, address.number].filter(Boolean).join(', ');
-  const locality = [address.neighborhood, `${address.city}/${address.state}`].filter(Boolean).join(' · ');
-  return [street, address.complement, locality, `CEP ${address.cep}`].filter(Boolean).join('\n');
+function paymentLabel(status) {
+  const normalized = String(status || 'NO_ORDER').toUpperCase();
+  const labels = {
+    NO_ORDER: 'Sem pedido enviado',
+    CREATING: 'Solicitação recebida',
+    PENDING: 'Aguardando Pix',
+    UNKNOWN: 'Em conferência',
+    PAID: 'Pagamento confirmado',
+  };
+  return { normalized, label: labels[normalized] || 'Em conferência' };
 }
 
-function statusLabel(status) {
-  const normalized = String(status || 'UNKNOWN').toUpperCase();
-  const labels = { CREATING: 'Em conferência', PENDING: 'Pendente', UNKNOWN: 'Verificar manualmente', PAID: 'Pagamento confirmado' };
-  return labels[normalized] || 'Verificar manualmente';
-}
-
-function createOrderRow(order) {
+function createCustomerRow(customer) {
   const row = document.createElement('tr');
-  const orderCell = addCell(row, `#${String(order.id).slice(0, 8)}\n${dateLabel(order.createdAt)}`, 'admin-order-reference');
-  orderCell.title = order.id;
-  addCell(row, `${order.productName} ${order.productDose}\n${order.productPackaging}`, 'admin-product-cell');
-  addCell(row, order.payerName);
-  const address = addressLabel(order.address);
-  const addressCell = addCell(row, address, 'admin-address-cell');
-  addressCell.setAttribute('aria-label', address.replace(/\n/g, ', '));
-  addCell(row, `${money.format(order.totalCents / 100)}\nEnvio grátis`, 'admin-total-cell');
+  const name = customer.displayName || 'Nome não informado';
+  const email = customer.email || '';
+  const phone = String(customer.phone || '');
+  const digits = phone.replace(/\D/g, '');
+  const { normalized, label } = paymentLabel(customer.lastOrderStatus);
+  row.dataset.paymentStatus = normalized.toLowerCase().replaceAll('_', '-');
+  row.dataset.marketingAuthorized = customer.whatsappMarketingConsent ? 'true' : 'false';
+  row.dataset.search = `${name} ${email} ${phone} ${customer.lastOrderProductName || ''}`.toLocaleLowerCase('pt-BR');
 
+  addCell(row, name);
+  addCell(row, email);
+
+  const phoneCell = document.createElement('td');
+  if (customer.whatsappMarketingConsent && /^55\d{10,11}$/.test(digits)) {
+    const link = document.createElement('a');
+    link.href = `https://wa.me/${digits}`;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = phone;
+    link.setAttribute('aria-label', `Abrir WhatsApp autorizado de ${name || email}`);
+    phoneCell.append(link);
+  } else {
+    phoneCell.textContent = phone || '—';
+  }
+  row.append(phoneCell);
+
+  addCell(row, customer.lastOrderProductName || '—');
   const statusCell = document.createElement('td');
   const status = document.createElement('span');
-  const normalizedStatus = String(order.paymentStatus || 'UNKNOWN').toLowerCase();
-  status.className = `admin-status admin-status-${normalizedStatus}`;
-  status.textContent = statusLabel(order.paymentStatus);
+  status.className = `admin-status admin-status-${normalized.toLowerCase().replaceAll('_', '-')}`;
+  status.textContent = label;
   statusCell.append(status);
   row.append(statusCell);
-  addCell(row, order.transactionId || 'Aguardando conferência', 'admin-transaction-cell');
+  addCell(row, String(customer.orderCount ?? 0));
+  addCell(row, dateLabel(customer.createdAt));
+  addCell(row, customer.whatsappMarketingConsent
+    ? `Autorizou em ${dateLabel(customer.consentAt)}`
+    : 'Não autorizou');
   return row;
 }
 
-async function loadOrders() {
-  refreshButton.disabled = true;
-  setMessage(ordersMessage, 'Carregando pedidos…');
+function renderCustomers() {
+  const query = searchInput.value.trim().toLocaleLowerCase('pt-BR');
+  const paymentSelection = orderFilter.value;
+  const marketingSelection = marketingFilter.value;
+  const filtered = allCustomers.filter((customer) => {
+    const { normalized } = paymentLabel(customer.lastOrderStatus);
+    const status = normalized.toLowerCase().replaceAll('_', '-');
+    const hasPayment = normalized === 'PAID';
+    const noOrder = normalized === 'NO_ORDER';
+    if (paymentSelection === 'open' && hasPayment) return false;
+    if (paymentSelection === 'paid' && !hasPayment) return false;
+    if (paymentSelection === 'no-order' && !noOrder) return false;
+    if (marketingSelection === 'authorized' && !customer.whatsappMarketingConsent) return false;
+    const searchable = `${customer.displayName || ''} ${customer.email || ''} ${customer.phone || ''} ${customer.lastOrderProductName || ''}`.toLocaleLowerCase('pt-BR');
+    return !query || searchable.includes(query) || status.includes(query);
+  });
+
+  customersBody.replaceChildren();
+  if (filtered.length === 0) {
+    const row = document.createElement('tr');
+    const cell = document.createElement('td');
+    cell.colSpan = 8;
+    cell.className = 'admin-empty-state';
+    cell.textContent = allCustomers.length === 0
+      ? 'Nenhum cliente cadastrado ainda.'
+      : 'Nenhum cliente corresponde aos filtros.';
+    row.append(cell);
+    customersBody.append(row);
+  } else {
+    filtered.forEach((customer) => customersBody.append(createCustomerRow(customer)));
+  }
+
+  const openCount = allCustomers.filter((customer) => paymentLabel(customer.lastOrderStatus).normalized !== 'PAID').length;
+  setMessage(customersMessage, `${filtered.length} de ${allCustomers.length} cliente${allCustomers.length === 1 ? '' : 's'} exibido${allCustomers.length === 1 ? '' : 's'} · ${openCount} sem pagamento confirmado.`);
+}
+
+async function loadCustomers() {
+  refreshCustomersButton.disabled = true;
+  setMessage(customersMessage, 'Carregando clientes…');
   try {
-    const result = await api('/api/admin/orders', { method: 'GET' });
-    const orders = Array.isArray(result.orders) ? result.orders : [];
-    ordersBody.replaceChildren();
-    if (orders.length === 0) {
-      const row = document.createElement('tr');
-      const cell = document.createElement('td');
-      cell.colSpan = 7;
-      cell.className = 'admin-empty-state';
-      cell.textContent = 'Nenhum pedido registrado.';
-      row.append(cell);
-      ordersBody.append(row);
-      setMessage(ordersMessage, '0 pedidos');
-    } else {
-      orders.forEach((order) => ordersBody.append(createOrderRow(order)));
-      setMessage(ordersMessage, `${orders.length} pedido${orders.length === 1 ? '' : 's'} carregado${orders.length === 1 ? '' : 's'}.`);
-    }
+    const result = await api('/api/admin/customers', { method: 'GET' });
+    allCustomers = Array.isArray(result.customers) ? result.customers : [];
+    renderCustomers();
   } catch (error) {
     if (/sessão|autenticação/i.test(error.message)) return showLogin('Sua sessão expirou. Entre novamente.', true);
-    setMessage(ordersMessage, error.message || 'Não foi possível carregar os pedidos.', true);
+    setMessage(customersMessage, error.message || 'Não foi possível carregar os clientes.', true);
   } finally {
-    refreshButton.disabled = false;
+    refreshCustomersButton.disabled = false;
   }
 }
 
@@ -128,8 +175,8 @@ loginForm.addEventListener('submit', async (event) => {
   try {
     await api('/api/admin/login', { method: 'POST', body: JSON.stringify({ password: passwordInput.value }) });
     passwordInput.value = '';
-    showOrders();
-    await loadOrders();
+    showCustomers();
+    await loadCustomers();
   } catch (error) {
     setMessage(loginMessage, error.message || 'Não foi possível entrar.', true);
     passwordInput.select();
@@ -139,22 +186,26 @@ loginForm.addEventListener('submit', async (event) => {
   }
 });
 
-refreshButton.addEventListener('click', loadOrders);
+searchInput.addEventListener('input', renderCustomers);
+orderFilter.addEventListener('change', renderCustomers);
+marketingFilter.addEventListener('change', renderCustomers);
+refreshCustomersButton.addEventListener('click', loadCustomers);
 logoutButton.addEventListener('click', async () => {
   try {
     await api('/api/admin/logout', { method: 'POST' });
   } catch {
-    // A tela de login remove o conteúdo visível mesmo se a sessão já tiver expirado.
+    // A tela de login remove os dados visíveis mesmo se a sessão já tiver expirado.
   }
-  ordersBody.replaceChildren();
+  allCustomers = [];
+  customersBody.replaceChildren();
   showLogin('Você saiu do painel.');
 });
 
 async function initialize() {
   try {
     await api('/api/admin/session', { method: 'GET' });
-    showOrders();
-    await loadOrders();
+    showCustomers();
+    await loadCustomers();
   } catch {
     showLogin();
   }

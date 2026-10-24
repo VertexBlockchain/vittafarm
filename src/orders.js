@@ -213,37 +213,47 @@ function toIso(value) {
   return Number.isNaN(date.getTime()) ? '' : date.toISOString();
 }
 
-async function listOrders(pool) {
+async function listCustomersForAdmin(pool) {
   const [rows] = await pool.execute(
-    `SELECT id, product_id, product_name, product_dose, product_packaging,
-      unit_price_cents, shipping_cents, total_cents, payer_name,
-      address_cep, address_street, address_number, address_complement,
-      address_neighborhood, address_city, address_state,
-      payment_status, pixgate_transaction_id, created_at
-     FROM orders ORDER BY created_at DESC LIMIT 200`,
+    `SELECT customers.id, customers.email, customers.display_name, customers.phone, customers.created_at,
+       CASE
+         WHEN customers.whatsapp_marketing_consent_at IS NOT NULL
+           AND customers.whatsapp_marketing_revoked_at IS NULL
+         THEN customers.whatsapp_marketing_consent_at ELSE NULL
+       END AS marketing_consent_at,
+       COALESCE(order_totals.order_count, 0) AS order_count,
+       last_order.product_name AS last_order_product_name,
+       last_order.payment_status AS last_order_status,
+       last_order.created_at AS last_order_at
+     FROM customer_accounts customers
+     LEFT JOIN (
+       SELECT customer_id, COUNT(*) AS order_count
+         FROM orders
+        WHERE customer_id IS NOT NULL
+        GROUP BY customer_id
+     ) order_totals ON order_totals.customer_id = customers.id
+     LEFT JOIN LATERAL (
+       SELECT product_name, payment_status, created_at
+         FROM orders
+        WHERE customer_id = customers.id
+        ORDER BY created_at DESC
+        LIMIT 1
+     ) last_order ON TRUE
+     ORDER BY CASE WHEN last_order.payment_status = 'PAID' THEN 1 ELSE 0 END,
+       COALESCE(last_order.created_at, customers.created_at) DESC
+     LIMIT 500`,
   );
   return rows.map((row) => ({
-    id: row.id,
-    productId: row.product_id,
-    productName: row.product_name,
-    productDose: row.product_dose,
-    productPackaging: row.product_packaging,
-    unitPriceCents: Number(row.unit_price_cents),
-    shippingCents: Number(row.shipping_cents),
-    totalCents: Number(row.total_cents),
-    payerName: row.payer_name,
-    address: {
-      cep: row.address_cep,
-      street: row.address_street,
-      number: row.address_number,
-      complement: row.address_complement || '',
-      neighborhood: row.address_neighborhood,
-      city: row.address_city,
-      state: row.address_state,
-    },
-    paymentStatus: row.payment_status,
-    transactionId: row.pixgate_transaction_id || '',
+    email: row.email,
+    displayName: row.display_name,
+    phone: row.phone || '',
+    whatsappMarketingConsent: Boolean(row.marketing_consent_at),
+    orderCount: Number(row.order_count),
+    lastOrderProductName: row.last_order_product_name || '',
+    lastOrderStatus: row.last_order_status || 'NO_ORDER',
+    lastOrderAt: row.last_order_at ? toIso(row.last_order_at) : '',
     createdAt: toIso(row.created_at),
+    consentAt: row.marketing_consent_at ? toIso(row.marketing_consent_at) : '',
   }));
 }
 
@@ -301,7 +311,7 @@ async function markOrderPaidByTransactionId(pool, transactionId, webhookToken) {
 module.exports = {
   getCustomerOrderStatus,
   listCustomerOrders,
-  listOrders,
+  listCustomersForAdmin,
   markOrderPaidByTransactionId,
   processCheckout,
 };

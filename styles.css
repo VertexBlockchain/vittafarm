@@ -270,6 +270,7 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 .dialog-privacy { margin: 0; }
 .consent-field { display: flex; align-items: flex-start; gap: 10px; color: #536a60; font-size: 11px; line-height: 1.55; cursor: pointer; }
 .consent-field input { width: 17px; height: 17px; flex: 0 0 auto; accent-color: var(--green); }
+.marketing-consent-field { margin: 0; }
 .checkout-terms { border: 1px solid #dce6dd; border-radius: 11px; background: #f7f9f5; color: #61746b; }
 .checkout-terms summary { padding: 11px 13px; color: var(--green-dark); font-size: 11px; font-weight: 700; cursor: pointer; }
 .checkout-terms-content { padding: 0 13px 11px; font-size: 11px; line-height: 1.55; }
@@ -309,6 +310,8 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 .account-card { margin: 20px 0; padding: clamp(20px, 5vw, 30px); border: 1px solid #d5e1d7; border-radius: 18px; background: #fffefa; box-shadow: 0 12px 34px rgba(20, 55, 44, .06); }
 .account-card h2 { margin: 0 0 18px; color: var(--ink); font: 700 24px/1.2 Manrope, sans-serif; letter-spacing: -.04em; }
 .account-card form { display: grid; gap: 14px; }
+.account-marketing-settings { margin: 0 0 18px; padding: 14px; border: 1px solid #d7e4d9; border-radius: 12px; background: #f5faf5; }
+.account-marketing-settings p { margin: 0 0 10px; color: #536a60; font-size: 12px; line-height: 1.55; }
 .account-action { width: 100%; border: 0; cursor: pointer; }
 .account-action:disabled { opacity: .62; cursor: wait; }
 .account-footnote, .account-empty { margin: 16px 0 0; color: #61746b; font-size: 12px; line-height: 1.6; }
@@ -398,6 +401,7 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 .admin-message-error { color: #a3312b; }
 .admin-message-success { color: #315d4e; }
 .admin-orders-section { padding: clamp(18px, 3vw, 28px); border: 1px solid #d9e2da; border-radius: 18px; background: var(--white); box-shadow: var(--shadow); }
+.admin-customers-section { margin-top: 24px; }
 .admin-orders-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 14px; }
 .admin-orders-heading .section-kicker { margin-bottom: 6px; }
 .admin-orders-heading h2 { margin-bottom: 0; }
@@ -407,6 +411,7 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 .admin-secondary-button:disabled { cursor: wait; opacity: .6; }
 .admin-table-scroll { overflow-x: auto; border: 1px solid #e0e7df; border-radius: 12px; }
 .admin-table { width: 100%; min-width: 1020px; border-collapse: collapse; text-align: left; }
+.admin-customers-table { min-width: 820px; }
 .admin-table th { padding: 12px 11px; color: #5d766a; background: #f1f6ef; font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .admin-table td { max-width: 230px; padding: 13px 11px; border-top: 1px solid #e5ebe4; color: #35594f; font-size: 10px; line-height: 1.55; vertical-align: top; white-space: pre-line; overflow-wrap: anywhere; }
 .admin-table tr:hover td { background: #fbfcf8; }
@@ -437,4 +442,132 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
   .admin-actions { width: 100%; }
   .admin-secondary-button { flex: 1 1 auto; }
   .admin-orders-section { margin-inline: -2px; padding: 15px 12px; }
+}
+
+
+/* Avaliações e suporte de entrega */
+.reviews-section {
+  padding-top: 54px;
+  padding-bottom: 68px;
+}
+.reviews-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 23px 0 22px;
+}
+.reviews-heading h2 {
+  margin: 0 0 9px;
+  color: var(--green-dark);
+  font-size: clamp(30px, 4vw, 44px);
+  font-weight: 800;
+  letter-spacing: -.06em;
+}
+.reviews-heading .section-description { margin-bottom: 0; }
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 16px;
+}
+.review-card {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #e0e7df;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(29, 65, 51, .06);
+}
+.review-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #fff;
+  object-fit: contain;
+}
+.review-card figcaption {
+  padding: 11px 13px;
+  border-top: 1px solid #edf0eb;
+  color: #63776e;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.delivery-support-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 24px;
+  padding: clamp(19px, 3vw, 27px);
+  border: 1px solid #d8e4d8;
+  border-radius: 16px;
+  background: #f3f7f0;
+}
+.delivery-support-card h3 {
+  margin: 3px 0 6px;
+  color: var(--green-dark);
+  font-size: 21px;
+  letter-spacing: -.04em;
+}
+.delivery-support-card p:last-child {
+  margin-bottom: 0;
+  color: #63776e;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.delivery-support-card .button { flex: 0 0 auto; }
+
+/* Filtros do painel de clientes */
+.admin-customer-filters {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.2fr) repeat(2, minmax(170px, .8fr));
+  gap: 12px;
+  margin: 3px 0 16px;
+}
+.admin-customer-filters label {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  color: #5d766a;
+  font-size: 10px;
+  font-weight: 700;
+}
+.admin-customer-filters input,
+.admin-customer-filters select {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid #d3ded5;
+  border-radius: 10px;
+  color: var(--green-dark);
+  background: #fff;
+  font: inherit;
+  font-size: 12px;
+}
+.admin-customer-filters input:focus,
+.admin-customer-filters select:focus {
+  outline: 2px solid rgba(20, 126, 105, .22);
+  border-color: #147e69;
+}
+.admin-customers-table { min-width: 1180px; }
+.admin-status-no-order {
+  border-color: #cbd9d0;
+  color: #4f685d;
+  background: #f1f5f0;
+}
+
+@media (max-width: 900px) {
+  .reviews-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .reviews-section { padding-top: 38px; padding-bottom: 48px; }
+  .reviews-grid { grid-template-columns: 1fr; gap: 13px; }
+  .delivery-support-card { align-items: stretch; flex-direction: column; gap: 14px; }
+  .delivery-support-card .button { width: 100%; }
+  .admin-customer-filters { grid-template-columns: 1fr; }
+  #admin-customers-view .admin-orders-heading { align-items: flex-start; flex-direction: column; }
+  #admin-customers-view .admin-actions { width: 100%; justify-content: flex-start; }
 }
