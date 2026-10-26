@@ -6,6 +6,7 @@ const { isValidCpf, isValidCnpj, normalizeBrazilPhone, validateCheckout } = requ
 const products = Object.fromEntries(catalog.products.map((product) => [product.id, product]));
 const validCheckout = () => ({
   productId: 'lipoless',
+  paymentMethod: 'avista',
   checkoutRequestId: 'f4b6f8c9-1f3f-4f8a-8d17-2115c2a19b30',
   nome: 'Cliente de Teste',
   cpf: '11144477735',
@@ -35,9 +36,10 @@ test('valida dígitos de CPF e CNPJ', () => {
 });
 
 test('normaliza endereço e calcula valor somente a partir do catálogo', () => {
-  const result = validateCheckout(validCheckout(), products, 0);
+  const result = validateCheckout(validCheckout(), products, 3000);
   assert.equal(result.ok, true);
-  assert.equal(result.value.totalCents, products.lipoless.priceCents);
+  assert.equal(result.value.totalCents, products.lipoless.priceCents + 3000);
+  assert.equal(result.value.depositCents, result.value.totalCents);
   assert.equal(result.value.cpf, '11144477735');
   assert.equal(result.value.email, 'cliente@example.com');
   assert.equal(Object.hasOwn(result.value, 'password'), false, 'a senha não deve seguir para a camada de pedidos');
@@ -49,21 +51,21 @@ test('normaliza endereço e calcula valor somente a partir do catálogo', () => 
 test('rejeita endereço incompleto, aceite único ausente e preço enviado pelo navegador', () => {
   const missingAddress = validCheckout();
   missingAddress.address.cep = '123';
-  assert.equal(validateCheckout(missingAddress, products, 0).ok, false);
+  assert.equal(validateCheckout(missingAddress, products, 3000).ok, false);
 
   const missingConsent = validCheckout();
   missingConsent.termsConsent = false;
-  assert.equal(validateCheckout(missingConsent, products, 0).ok, false);
+  assert.equal(validateCheckout(missingConsent, products, 3000).ok, false);
 
   const forgedPrice = { ...validCheckout(), priceCents: 1 };
-  assert.equal(validateCheckout(forgedPrice, products, 0).ok, false);
+  assert.equal(validateCheckout(forgedPrice, products, 3000).ok, false);
 });
 
 test('o aceite único inclui a declaração exigida para produto de pesquisa', () => {
   const order = { ...validCheckout(), productId: 'ghk-cu-thera' };
-  assert.equal(validateCheckout(order, products, 0).ok, true);
+  assert.equal(validateCheckout(order, products, 3000).ok, true);
   order.termsConsent = false;
-  assert.equal(validateCheckout(order, products, 0).ok, false);
+  assert.equal(validateCheckout(order, products, 3000).ok, false);
 });
 
 test('exige e-mail válido, senha de no mínimo seis caracteres e confirmação correspondente', () => {
@@ -74,7 +76,7 @@ test('exige e-mail válido, senha de no mínimo seis caracteres e confirmação 
   assert.equal(validateCheckout(differentPassword, products, 0).ok, false);
 
   const invalidEmail = { ...validCheckout(), email: 'sem-email' };
-  assert.equal(validateCheckout(invalidEmail, products, 0).ok, false);
+  assert.equal(validateCheckout(invalidEmail, products, 3000).ok, false);
 });
 
 test('exige telefone válido para contato do pedido e separa consentimento promocional', () => {
@@ -83,20 +85,31 @@ test('exige telefone válido para contato do pedido e separa consentimento promo
     phone: '(47) 92000-6015',
     whatsappMarketingConsent: true,
   };
-  const result = validateCheckout(withConsent, products, 0);
+  const result = validateCheckout(withConsent, products, 3000);
   assert.equal(result.ok, true);
   assert.equal(result.value.phone, '+5547920006015');
   assert.equal(result.value.whatsappMarketingConsent, true);
 
-  const withoutConsent = validateCheckout({ ...validCheckout(), phone: '(47) 92000-6015' }, products, 0);
+  const withoutConsent = validateCheckout({ ...validCheckout(), phone: '(47) 92000-6015' }, products, 3000);
   assert.equal(withoutConsent.ok, true);
   assert.equal(withoutConsent.value.phone, '+5547920006015', 'telefone é guardado para contato sobre o pedido');
   assert.equal(withoutConsent.value.whatsappMarketingConsent, false);
 
   const missingPhone = { ...validCheckout(), phone: '' };
-  assert.equal(validateCheckout(missingPhone, products, 0).ok, false);
+  assert.equal(validateCheckout(missingPhone, products, 3000).ok, false);
 
   assert.equal(normalizeBrazilPhone('+55 47 92000-6015'), '+5547920006015');
   assert.equal(normalizeBrazilPhone('123'), null);
-  assert.equal(validateCheckout({ ...withConsent, phone: '' }, products, 0).ok, false);
+  assert.equal(validateCheckout({ ...withConsent, phone: '' }, products, 3000).ok, false);
+});
+
+test('Pix parcelado cobra 35% do produto mais o frete e envia 65% do produto por e-mail', () => {
+  const checkout = { ...validCheckout(), paymentMethod: 'parcelado' };
+  const result = validateCheckout(checkout, products, 3000);
+  const expectedDeposit = Math.floor((products.lipoless.priceCents * 35 + 50) / 100) + 3000;
+  assert.equal(result.ok, true);
+  assert.equal(result.value.depositCents, expectedDeposit);
+  assert.equal(result.value.balanceCents, result.value.totalCents - expectedDeposit);
+  assert.equal(result.value.depositCents + result.value.balanceCents, result.value.totalCents);
+  assert.equal(validateCheckout(checkout, products, 0).ok, false, 'frete não pode ser zerado');
 });

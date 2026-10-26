@@ -33,6 +33,7 @@ async function api(path, options = {}) {
 function statusText(value) {
   const status = String(value || 'PENDING').toUpperCase();
   if (status === 'PAID') return 'Pagamento confirmado';
+  if (status === 'PARTIALLY_PAID') return 'Entrada paga — aguardando saldo';
   if (status === 'UNKNOWN') return 'Em conferência';
   if (status === 'CREATING') return 'Gerando cobrança';
   return 'Aguardando pagamento';
@@ -56,7 +57,8 @@ function renderOrders(orders) {
     const title = document.createElement('h3');
     title.textContent = order.productName;
     const status = document.createElement('span');
-    status.className = `account-order-status${order.paymentStatus === 'PAID' ? ' is-paid' : ''}`;
+    const statusClass = order.paymentStatus === 'PAID' ? ' is-paid' : order.paymentStatus === 'PARTIALLY_PAID' ? ' is-partial' : '';
+    status.className = `account-order-status${statusClass}`;
     status.textContent = statusText(order.paymentStatus);
     heading.append(title, status);
     const details = document.createElement('p');

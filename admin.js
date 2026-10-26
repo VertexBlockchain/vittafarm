@@ -86,6 +86,7 @@ function paymentLabel(status) {
     NO_ORDER: 'Sem pedido enviado',
     CREATING: 'Solicitação recebida',
     PENDING: 'Aguardando Pix',
+    PARTIALLY_PAID: 'Entrada paga — saldo pendente',
     UNKNOWN: 'Em conferência',
     PAID: 'Pagamento confirmado',
   };

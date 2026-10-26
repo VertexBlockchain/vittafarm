@@ -2,6 +2,7 @@ const crypto = require('node:crypto');
 const QRCode = require('qrcode');
 const { validateCheckout, UUID_PATTERN } = require('./validation');
 const { buildPixgatePayload, normalizeTransactionId, requestPixgate } = require('./pixgate');
+const { sendRemainingPixEmail } = require('./email');
 
 function apiError(statusCode, error, retrySafe) {
   return { statusCode, body: { error, retrySafe } };
@@ -34,22 +35,52 @@ async function setOrderStatus(pool, orderId, paymentStatus, transactionId = null
   return Array.isArray(rows) && rows.length === 1;
 }
 
+async function refreshOrderPaymentStatus(pool, orderId) {
+  const [rows] = await pool.execute('SELECT payment_status FROM order_payments WHERE order_id = ?', [orderId]);
+  const statuses = rows.map((row) => String(row.payment_status).toUpperCase());
+  let status = 'CREATING';
+  if (statuses.length && statuses.every((value) => value === 'PAID')) status = 'PAID';
+  else if (statuses.some((value) => value === 'PAID')) status = 'PARTIALLY_PAID';
+  else if (statuses.includes('UNKNOWN')) status = 'UNKNOWN';
+  else if (statuses.includes('PENDING')) status = 'PENDING';
+  await pool.execute('UPDATE orders SET payment_status = ? WHERE id = ?', [status, orderId]);
+  return status;
+}
+
+async function setOrderPaymentStatus(pool, paymentId, status, transactionId = null) {
+  const [rows] = await pool.execute(
+    `UPDATE order_payments
+        SET payment_status = CASE WHEN payment_status = 'PAID' THEN 'PAID' ELSE ? END,
+            pixgate_transaction_id = COALESCE(pixgate_transaction_id, ?),
+            updated_at = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
+      WHERE id = ? AND (pixgate_transaction_id IS NULL OR pixgate_transaction_id = ?)
+      RETURNING order_id`,
+    [status, transactionId, paymentId, transactionId],
+  );
+  return rows[0]?.order_id || '';
+}
+
 async function processCheckout({
   pool,
   body,
   products,
   customerId,
-  shippingCents = 0,
+  shippingCents = 3000,
   apiKey,
   postbackUrl,
   ordersEnabled,
   pixgateEnabled,
+  emailApiKey,
+  emailFrom,
   fetchImpl = fetch,
 }) {
   if (ordersEnabled !== true || pixgateEnabled !== true) {
     return apiError(503, 'A criação de pedidos e cobranças reais está desabilitada nesta prévia. Nenhum pedido foi registrado.', true);
   }
   if (!apiKey) return apiError(503, 'A cobrança PIX está temporariamente indisponível.', true);
+  if (body?.paymentMethod === 'parcelado' && (!emailApiKey || !emailFrom)) {
+    return apiError(503, 'O Pix parcelado está temporariamente indisponível porque o envio de e-mail ainda não foi configurado.', true);
+  }
   if (typeof postbackUrl !== 'string' || !postbackUrl.startsWith('https://')) {
     return apiError(503, 'A confirmação automática do PIX ainda não está configurada. Defina uma URL pública HTTPS para o webhook.', true);
   }
@@ -61,14 +92,25 @@ async function processCheckout({
   if (!validation.ok) return apiError(400, validation.error, true);
   const order = validation.value;
   const orderId = crypto.randomUUID();
-  const webhookToken = crypto.randomBytes(32).toString('base64url');
-  const webhookTokenHash = crypto.createHash('sha256').update(webhookToken).digest('hex');
-  let callbackUrl;
-  try {
-    callbackUrl = callbackUrlWithToken(postbackUrl, webhookToken);
-  } catch {
-    return apiError(503, 'A URL de confirmação PIX precisa ser pública e usar HTTPS.', true);
-  }
+  const paymentKinds = order.paymentMethod === 'parcelado'
+    ? [
+      { kind: 'DEPOSIT', amountCents: order.depositCents },
+      { kind: 'BALANCE', amountCents: order.balanceCents },
+    ]
+    : [{ kind: 'FULL', amountCents: order.totalCents }];
+  const payments = paymentKinds.map(({ kind, amountCents }) => {
+    const token = crypto.randomBytes(32).toString('base64url');
+    return {
+      id: crypto.randomUUID(),
+      kind,
+      amountCents,
+      tokenHash: crypto.createHash('sha256').update(token).digest('hex'),
+      callbackUrl: callbackUrlWithToken(postbackUrl, token),
+      transactionId: '',
+      pix: '',
+    };
+  });
+  const webhookTokenHash = payments[0].tokenHash;
 
   try {
     await pool.execute(
@@ -77,11 +119,11 @@ async function processCheckout({
         unit_price_cents, shipping_cents, total_cents, payer_name,
         address_cep, address_street, address_number, address_complement,
         address_neighborhood, address_city, address_state,
-        delivery_consent_at, pixgate_consent_at, research_consent_at, payment_status
+        delivery_consent_at, pixgate_consent_at, research_consent_at, payment_status, payment_method
       ) VALUES (
         ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
         (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'), (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
-        CASE WHEN ? THEN (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') ELSE NULL END, 'CREATING'
+        CASE WHEN ? THEN (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') ELSE NULL END, 'CREATING', ?
       )`,
       [
         orderId,
@@ -104,6 +146,7 @@ async function processCheckout({
         order.address.city,
         order.address.state,
         order.product.researchUseOnly === true,
+        order.paymentMethod,
       ],
     );
   } catch (error) {
@@ -127,62 +170,119 @@ async function processCheckout({
     return apiError(503, 'Não foi possível registrar o pedido; nenhuma cobrança foi enviada à Pixgate.', true);
   }
 
-  const payload = buildPixgatePayload({ ...order, postbackUrl: callbackUrl });
-  let providerResult;
   try {
-    providerResult = await requestPixgate(payload, apiKey, fetchImpl);
-  } catch {
-    try {
-      await setOrderStatus(pool, orderId, 'UNKNOWN');
-    } catch {
-      // O registro inicial continua disponível para conferência manual.
+    for (const payment of payments) {
+      await pool.execute(
+        `INSERT INTO order_payments (id, order_id, payment_kind, amount_cents, webhook_token_hash, payment_status)
+         VALUES (?, ?, ?, ?, ?, 'CREATING')`,
+        [payment.id, orderId, payment.kind, payment.amountCents, payment.tokenHash],
+      );
     }
-    return {
-      statusCode: 502,
-      body: {
-        error: 'Não foi possível confirmar o resultado da Pixgate. O pedido foi registrado para conferência; não tente gerar outra cobrança.',
-        retrySafe: false,
-        orderId,
-      },
-    };
+  } catch {
+    try { await setOrderStatus(pool, orderId, 'UNKNOWN'); } catch { /* Registro principal fica disponível para conferência. */ }
+    return apiError(503, 'Não foi possível preparar as cobranças do pedido. Confira antes de tentar novamente.', false);
   }
 
-  const data = providerResult.data;
-  const transactionId = normalizeTransactionId(data?.id);
-  if (!providerResult.ok || typeof data?.pix !== 'string' || !data.pix.trim() || !transactionId) {
+  for (const payment of payments) {
+    let providerResult;
     try {
-      await setOrderStatus(pool, orderId, 'UNKNOWN', transactionId);
+      const payload = buildPixgatePayload({
+        nome: order.nome,
+        cpf: order.cpf,
+        product: order.product,
+        device: order.device,
+        amountCents: payment.amountCents,
+        shippingCents: order.shippingCents,
+        paymentKind: payment.kind,
+        postbackUrl: payment.callbackUrl,
+      });
+      providerResult = await requestPixgate(payload, apiKey, fetchImpl);
     } catch {
-      // O estado inicial permanece visível no painel caso a atualização falhe.
+      try {
+        await setOrderPaymentStatus(pool, payment.id, 'UNKNOWN');
+        await refreshOrderPaymentStatus(pool, orderId);
+      } catch { /* A linha de pagamento permanece disponível para conferência. */ }
+      return {
+        statusCode: 502,
+        body: {
+          error: 'Não foi possível confirmar uma das cobranças Pix. O pedido foi registrado para conferência; não tente gerar outra cobrança.',
+          retrySafe: false,
+          orderId,
+        },
+      };
     }
-    return {
-      statusCode: 502,
-      body: {
-        error: 'A resposta da Pixgate não confirmou uma cobrança utilizável. O pedido foi registrado para conferência; não tente novamente.',
-        retrySafe: false,
-        orderId,
-        transactionId: transactionId || '',
-      },
-    };
+
+    const data = providerResult.data;
+    const transactionId = normalizeTransactionId(data?.id);
+    if (!providerResult.ok || typeof data?.pix !== 'string' || !data.pix.trim() || !transactionId) {
+      try {
+        await setOrderPaymentStatus(pool, payment.id, 'UNKNOWN', transactionId);
+        await refreshOrderPaymentStatus(pool, orderId);
+      } catch { /* O estado permanece visível no painel para conferência manual. */ }
+      return {
+        statusCode: 502,
+        body: {
+          error: 'A Pixgate não confirmou uma das cobranças. O pedido foi registrado para conferência; não tente novamente.',
+          retrySafe: false,
+          orderId,
+          transactionId: transactionId || '',
+        },
+      };
+    }
+
+    payment.transactionId = transactionId;
+    payment.pix = data.pix.trim();
+    try {
+      const updatedOrderId = await setOrderPaymentStatus(pool, payment.id, 'PENDING', transactionId);
+      if (updatedOrderId !== orderId) throw new Error('Pagamento não atualizado.');
+      if (payment === payments[0]) {
+        await pool.execute('UPDATE orders SET pixgate_transaction_id = COALESCE(pixgate_transaction_id, ?) WHERE id = ?', [transactionId, orderId]);
+      }
+      await refreshOrderPaymentStatus(pool, orderId);
+    } catch {
+      return {
+        statusCode: 502,
+        body: {
+          error: 'A Pixgate respondeu, mas não foi possível atualizar o pedido. Não tente gerar outra cobrança; use o identificador do pedido para conferência.',
+          retrySafe: false,
+          orderId,
+          transactionId,
+        },
+      };
+    }
   }
 
-  try {
-    const updated = await setOrderStatus(pool, orderId, 'PENDING', transactionId);
-    if (!updated) throw new Error('Pedido não atualizado.');
-  } catch {
-    return {
-      statusCode: 502,
-      body: {
-        error: 'A Pixgate respondeu, mas não foi possível atualizar o pedido. Não tente gerar outra cobrança; use os identificadores para conferência.',
-        retrySafe: false,
+  if (order.paymentMethod === 'parcelado') {
+    try {
+      await sendRemainingPixEmail({
+        apiKey: emailApiKey,
+        from: emailFrom,
+        to: order.email,
+        productName: order.product.name,
+        productDose: order.product.dose,
         orderId,
-        transactionId,
-      },
-    };
+        amountCents: order.balanceCents,
+        pix: payments[1].pix,
+        fetchImpl,
+      });
+    } catch {
+      try {
+        await setOrderPaymentStatus(pool, payments[1].id, 'UNKNOWN', payments[1].transactionId);
+        await refreshOrderPaymentStatus(pool, orderId);
+      } catch { /* O pedido permanece para conferência sem armazenar o código Pix. */ }
+      return {
+        statusCode: 502,
+        body: {
+          error: 'As cobranças foram criadas, mas não foi possível confirmar o envio do Pix do saldo por e-mail. O pedido foi registrado para conferência; entre em contato com o suporte e não tente gerar novamente.',
+          retrySafe: false,
+          orderId,
+        },
+      };
+    }
   }
 
   let qrCodeDataUrl = '';
-  const pix = data.pix.trim();
+  const pix = payments[0].pix;
   try {
     qrCodeDataUrl = await QRCode.toDataURL(pix, {
       errorCorrectionLevel: 'L',
@@ -198,10 +298,14 @@ async function processCheckout({
     statusCode: 200,
     body: {
       orderId,
-      transactionId,
+      transactionId: payments[0].transactionId,
       pix,
       qrCodeDataUrl,
-      value: Number((order.totalCents / 100).toFixed(2)),
+      value: Number((payments[0].amountCents / 100).toFixed(2)),
+      totalValue: Number((order.totalCents / 100).toFixed(2)),
+      balanceValue: order.paymentMethod === 'parcelado' ? Number((order.balanceCents / 100).toFixed(2)) : 0,
+      paymentMethod: order.paymentMethod,
+      emailSent: order.paymentMethod === 'parcelado',
       status: 'PENDING',
     },
   };
@@ -287,6 +391,29 @@ async function markOrderPaidByTransactionId(pool, transactionId, webhookToken) {
     return { known: false, updated: false };
   }
   const tokenHash = crypto.createHash('sha256').update(webhookToken).digest('hex');
+  const [paymentRows] = await pool.execute(
+    `UPDATE order_payments
+        SET payment_status = 'PAID', pixgate_transaction_id = COALESCE(pixgate_transaction_id, ?),
+            updated_at = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
+      WHERE webhook_token_hash = ?
+        AND (pixgate_transaction_id IS NULL OR pixgate_transaction_id = ?)
+        AND payment_status <> 'PAID'
+      RETURNING order_id`,
+    [normalized, tokenHash, normalized],
+  );
+  if (Array.isArray(paymentRows) && paymentRows.length > 0) {
+    await refreshOrderPaymentStatus(pool, paymentRows[0].order_id);
+    return { known: true, updated: true };
+  }
+
+  const [matchedPayments] = await pool.execute(
+    `SELECT order_id FROM order_payments
+      WHERE webhook_token_hash = ? AND pixgate_transaction_id = ? AND payment_status = 'PAID'
+      LIMIT 1`,
+    [tokenHash, normalized],
+  );
+  if (Array.isArray(matchedPayments) && matchedPayments.length > 0) return { known: true, updated: false };
+
   const [updatedRows] = await pool.execute(
     `UPDATE orders
         SET payment_status = 'PAID', pixgate_transaction_id = COALESCE(pixgate_transaction_id, ?)
