@@ -11,11 +11,6 @@
     <script src="./app.js" defer></script>
   </head>
   <body>
-    <div class="announcement-bar">
-      <span class="announcement-dot" aria-hidden="true"></span>
-      <span>Promoção fecha mês com Pix parcelado</span>
-    </div>
-
     <header class="site-header">
       <div class="header-inner page-shell">
         <a class="brand" href="#top" aria-label="Vitta Farm — início">
@@ -38,13 +33,20 @@
     <main id="top">
       <section class="hero page-shell" aria-labelledby="hero-title">
         <div class="hero-copy">
-          <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> Catálogo direto <span class="eyebrow-slash">/</span> Seleção Vitta</p>
-          <h1 id="hero-title">Escolha seu produto.<br /><span>Compra direta.</span></h1>
-          <p class="hero-description">Confira cada apresentação, veja as informações do produto e inicie sua compra pelo botão Comprar.</p>
-          <a class="button button-primary" href="#produtos">
-            Ver produtos
-            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.5v12M5.5 11l4.5 4.5 4.5-4.5" /></svg>
-          </a>
+          <div class="hero-promo-card">
+            <p class="promo-kicker"><span class="promo-kicker-dot" aria-hidden="true"></span> Promoção de fechamento do mês</p>
+            <h1 id="hero-title">Feche o mês<br /><span>com Pix parcelado.</span></h1>
+            <p class="promo-description">Comece com 35% do valor do produto + R$ 30,00 de frete. As próximas cobranças serão enviadas por e-mail e WhatsApp.</p>
+            <div class="promo-highlights" aria-label="Resumo da promoção">
+              <span>35% do produto + frete na entrada</span>
+              <span>Saldo enviado por e-mail e WhatsApp</span>
+            </div>
+            <a class="button button-primary promo-cta" href="#produtos">
+              Aproveitar promoção
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.5v12M5.5 11l4.5 4.5 4.5-4.5" /></svg>
+            </a>
+          </div>
+          <p class="hero-description">Escolha seu produto e confira os detalhes antes de comprar.</p>
         </div>
         <aside class="hero-summary" aria-label="Resumo do catálogo">
           <div class="summary-topline"><span>VITTA FARM / CATÁLOGO</span><span>01 — <span data-catalog-count>06</span></span></div>
