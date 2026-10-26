@@ -29,18 +29,18 @@ button { font: inherit; }
 .page-shell { width: min(1320px, calc(100% - 64px)); margin-inline: auto; }
 
 .announcement-bar {
-  min-height: 32px;
+  min-height: 52px;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 10px;
-  padding: 6px 18px;
+  padding: 10px 18px;
   background: var(--green-dark);
   color: #e8f3ed;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: .09em;
-  text-transform: uppercase;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: .01em;
+  text-align: center;
 }
 .announcement-dot, .eyebrow-dot {
   width: 7px;
@@ -58,9 +58,9 @@ button { font: inherit; }
 .brand-name { display: flex; align-items: baseline; gap: 5px; letter-spacing: -.05em; line-height: 1; }
 .brand-name strong { font-family: Manrope, sans-serif; font-size: 19px; font-weight: 800; }
 .brand-name > span { color: var(--green); font-size: 9px; font-weight: 700; letter-spacing: .18em; }
-.main-nav { display: flex; gap: clamp(24px, 4vw, 56px); margin-left: auto; margin-right: clamp(8px, 3vw, 40px); }
-.main-nav a { color: #4c6860; font-size: 13px; font-weight: 600; transition: color .18s ease; }
-.main-nav a:hover { color: var(--green); }
+.main-nav { display: flex; align-items: center; gap: 3px; margin-left: auto; margin-right: clamp(8px, 3vw, 40px); padding: 4px; border: 1px solid #dce7de; border-radius: 999px; background: rgba(255, 255, 255, .55); }
+.main-nav a { display: inline-flex; min-height: 38px; align-items: center; justify-content: center; padding: 0 13px; border-radius: 999px; color: #4c6860; font-size: 12px; font-weight: 700; white-space: nowrap; transition: color .18s ease, background .18s ease; }
+.main-nav a:hover, .main-nav a:focus-visible { color: var(--green-dark); background: #e8f3ed; outline: none; }
 .header-contact { display: inline-flex; align-items: center; gap: 10px; padding: 11px 15px; border: 1px solid #bdd4c9; border-radius: 999px; color: var(--green-dark); font-size: 12px; font-weight: 700; transition: background .18s, border-color .18s; }
 .header-contact:hover { background: var(--mint-soft); border-color: var(--mint); }
 .header-contact svg, .button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
@@ -173,13 +173,13 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 
 @media (max-width: 640px) {
   .page-shell { width: calc(100% - 40px); }
-  .announcement-bar { min-height: 30px; gap: 7px; padding-inline: 10px; font-size: 8px; letter-spacing: .1em; }
+  .announcement-bar { min-height: 54px; gap: 9px; padding: 10px 18px; font-size: 14px; line-height: 1.35; letter-spacing: 0; }
   .announcement-divider { height: 10px; margin-inline: 1px; }
-  .header-inner { min-height: 66px; gap: 12px; }
+  .header-inner { min-height: auto; display: grid; grid-template-columns: 1fr; gap: 9px; padding-block: 11px; }
   .brand-mark { width: 34px; height: 34px; }
   .brand-name strong { font-size: 17px; }
-  .main-nav { gap: 17px; margin: 0 0 0 auto; }
-  .main-nav a { font-size: 11px; }
+  .main-nav { width: 100%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; margin: 0; padding: 4px; border-radius: 14px; }
+  .main-nav a { min-width: 0; min-height: 38px; padding: 0 3px; border-radius: 10px; font-size: 10px; }
   .header-contact { display: none; }
   .hero { display: block; min-height: auto; padding-block: 55px 57px; }
   .hero-copy { max-width: 100%; }

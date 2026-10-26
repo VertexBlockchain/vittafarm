@@ -29,7 +29,7 @@ const checkout = (paymentMethod = 'avista') => ({
 });
 
 function mockedPool(events = [], options = {}) {
-  const state = { payments: [], orderId: '', orderStatus: '', orderTransactionId: '' };
+  const state = { payments: [], orderId: '', orderStatus: '', orderTransactionId: '', paymentMethod: '' };
   const pool = {
     state,
     async execute(sql, params = []) {
@@ -39,6 +39,7 @@ function mockedPool(events = [], options = {}) {
         if (options.insertError) throw options.insertError;
         options.insertParams = params;
         state.orderId = params[0];
+        state.paymentMethod = params.at(-1);
         return [{ affectedRows: 1 }, []];
       }
       if (statement.startsWith('INSERT INTO order_payments')) {
@@ -72,8 +73,11 @@ function mockedPool(events = [], options = {}) {
         payment.pixgate_transaction_id ||= params[0];
         return [[{ order_id: payment.order_id }], []];
       }
-      if (statement.startsWith('SELECT payment_status FROM order_payments')) {
-        return [state.payments.filter((row) => row.order_id === params[0]).map((row) => ({ payment_status: row.payment_status })), []];
+      if (statement.startsWith('SELECT payment_kind, payment_status FROM order_payments')) {
+        return [state.payments.filter((row) => row.order_id === params[0]).map((row) => ({ payment_kind: row.payment_kind, payment_status: row.payment_status })), []];
+      }
+      if (statement.startsWith('SELECT payment_method FROM orders')) {
+        return [[{ payment_method: state.paymentMethod }], []];
       }
       if (statement.startsWith('SELECT order_id FROM order_payments')) {
         const payment = state.payments.find((row) => row.webhook_token_hash === params[0]
@@ -155,32 +159,23 @@ test('Pix à vista inclui frete, persiste pedido e pagamento antes da Pixgate', 
   assert.ok(events.indexOf('insert-payment') < events.indexOf('pixgate'));
 });
 
-test('Pix parcelado cobra 35% do produto mais frete agora e envia por e-mail 65% do produto', async () => {
+test('Pix parcelado funciona sem configuração de e-mail e gera só 35% do produto mais frete', async () => {
   const events = [];
   const pool = mockedPool(events);
   const depositCents = Math.floor((products.lipoless.priceCents * 35 + 50) / 100) + 3000;
   const totalCents = products.lipoless.priceCents + 3000;
   const balanceCents = totalCents - depositCents;
   let pixCount = 0;
-  let emailBody;
   const result = await processCheckout({
     ...enabledOptions,
     body: checkout('parcelado'),
     pool,
-    emailApiKey: 'mock-resend-key',
-    emailFrom: 'Vitta Farm <pedidos@example.com>',
     fetchImpl: async (url, init) => {
-      if (url.includes('resend.com')) {
-        events.push('email');
-        emailBody = JSON.parse(init.body);
-        return { ok: true, json: async () => ({ id: 'email-mock-1' }) };
-      }
       events.push('pixgate');
       pixCount += 1;
       const payload = JSON.parse(init.body);
-      assert.equal(payload.valor, ((pixCount === 1 ? depositCents : balanceCents) / 100).toFixed(2));
-      if (pixCount === 1) assert.match(payload.descricao, /Entrada 35% \+ frete fixo - Frete fixo R\$ 30,00/);
-      else assert.match(payload.descricao, /Frete fixo R\$ 30,00 já cobrado na entrada/);
+      assert.equal(payload.valor, (depositCents / 100).toFixed(2));
+      assert.match(payload.descricao, /Entrada 35% \+ frete fixo - Frete fixo R\$ 30,00/);
       return pixResponse(pixCount);
     },
   });
@@ -190,46 +185,25 @@ test('Pix parcelado cobra 35% do produto mais frete agora e envia por e-mail 65%
   assert.equal(result.body.value, depositCents / 100);
   assert.equal(result.body.balanceValue, balanceCents / 100);
   assert.equal(result.body.totalValue, totalCents / 100);
-  assert.equal(result.body.pix, 'pix-copy-paste-1', 'somente a entrada é exibida no site');
-  assert.deepEqual(pool.state.payments.map((row) => row.payment_kind), ['DEPOSIT', 'BALANCE']);
-  assert.deepEqual(pool.state.payments.map((row) => row.amount_cents), [depositCents, balanceCents]);
-  assert.equal(emailBody.to[0], 'cliente@example.com');
-  assert.match(emailBody.text, /pix-copy-paste-2/);
-  assert.match(emailBody.text, /frete fixo de R\$ 30,00 já foi incluído na cobrança da entrada/);
-  assert.ok(events.indexOf('email') > events.lastIndexOf('pixgate'));
-  assert.equal(JSON.stringify(pool.state).includes('pix-copy-paste-2'), false, 'código do saldo não é persistido');
+  assert.equal(result.body.pix, 'pix-copy-paste-1');
+  assert.equal(pixCount, 1, 'gera somente o Pix da entrada');
+  assert.deepEqual(pool.state.payments.map((row) => row.payment_kind), ['DEPOSIT']);
+  assert.deepEqual(pool.state.payments.map((row) => row.amount_cents), [depositCents]);
+  assert.deepEqual(events, ['insert-order', 'insert-payment', 'pixgate', 'payment-update', 'update-order', 'update-order']);
 });
 
-test('Pix parcelado é bloqueado antes de registrar/cobrar quando e-mail transacional não está configurado', async () => {
-  const events = [];
-  const result = await processCheckout({
-    ...enabledOptions,
-    body: checkout('parcelado'),
-    pool: mockedPool(events),
-    fetchImpl: async () => { events.push('provider'); throw new Error('não deveria chamar'); },
-  });
-  assert.equal(result.statusCode, 503);
-  assert.equal(result.body.retrySafe, true);
-  assert.deepEqual(events, []);
-});
-
-test('webhooks identificam cada cobrança e só marcam o pedido pago após entrada e saldo', async () => {
+test('webhook confirma a entrada e mantém o pedido parcialmente pago enquanto resta o saldo parcelado', async () => {
   const events = [];
   const pool = mockedPool(events);
   const callbackTokens = [];
-  let pixCount = 0;
   const created = await processCheckout({
     ...enabledOptions,
     body: checkout('parcelado'),
     pool,
-    emailApiKey: 'mock-resend-key',
-    emailFrom: 'Vitta Farm <pedidos@example.com>',
-    fetchImpl: async (url, init) => {
-      if (url.includes('resend.com')) return { ok: true, json: async () => ({ id: 'mail-id' }) };
-      pixCount += 1;
+    fetchImpl: async (_url, init) => {
       const payload = JSON.parse(init.body);
       callbackTokens.push(new URL(payload.postback).searchParams.get('token'));
-      return pixResponse(pixCount);
+      return pixResponse(1);
     },
   });
   assert.equal(created.statusCode, 200);
@@ -238,9 +212,7 @@ test('webhooks identificam cada cobrança e só marcam o pedido pago após entra
   assert.equal(pool.state.orderStatus, 'PARTIALLY_PAID');
   const replay = await markOrderPaidByTransactionId(pool, 'pixgate-mock-1', callbackTokens[0]);
   assert.deepEqual(replay, { known: true, updated: false });
-  const second = await markOrderPaidByTransactionId(pool, 'pixgate-mock-2', callbackTokens[1]);
-  assert.deepEqual(second, { known: true, updated: true });
-  assert.equal(pool.state.orderStatus, 'PAID');
+  assert.equal(pool.state.orderStatus, 'PARTIALLY_PAID');
   assert.deepEqual(await markOrderPaidByTransactionId(pool, 'pixgate-mock-2', 'token-forjado'), { known: false, updated: false });
 });
 

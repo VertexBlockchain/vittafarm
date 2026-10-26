@@ -2,7 +2,6 @@ const crypto = require('node:crypto');
 const QRCode = require('qrcode');
 const { validateCheckout, UUID_PATTERN } = require('./validation');
 const { buildPixgatePayload, normalizeTransactionId, requestPixgate } = require('./pixgate');
-const { sendRemainingPixEmail } = require('./email');
 
 function apiError(statusCode, error, retrySafe) {
   return { statusCode, body: { error, retrySafe } };
@@ -36,10 +35,15 @@ async function setOrderStatus(pool, orderId, paymentStatus, transactionId = null
 }
 
 async function refreshOrderPaymentStatus(pool, orderId) {
-  const [rows] = await pool.execute('SELECT payment_status FROM order_payments WHERE order_id = ?', [orderId]);
+  const [rows] = await pool.execute('SELECT payment_kind, payment_status FROM order_payments WHERE order_id = ?', [orderId]);
+  const [orders] = await pool.execute('SELECT payment_method FROM orders WHERE id = ? LIMIT 1', [orderId]);
+  const paymentMethod = String(orders[0]?.payment_method || '').toLowerCase();
   const statuses = rows.map((row) => String(row.payment_status).toUpperCase());
   let status = 'CREATING';
-  if (statuses.length && statuses.every((value) => value === 'PAID')) status = 'PAID';
+  if (statuses.length && statuses.every((value) => value === 'PAID')) {
+    const hasTrackedBalance = rows.some((row) => String(row.payment_kind).toUpperCase() === 'BALANCE');
+    status = paymentMethod === 'parcelado' && !hasTrackedBalance ? 'PARTIALLY_PAID' : 'PAID';
+  }
   else if (statuses.some((value) => value === 'PAID')) status = 'PARTIALLY_PAID';
   else if (statuses.includes('UNKNOWN')) status = 'UNKNOWN';
   else if (statuses.includes('PENDING')) status = 'PENDING';
@@ -70,17 +74,12 @@ async function processCheckout({
   postbackUrl,
   ordersEnabled,
   pixgateEnabled,
-  emailApiKey,
-  emailFrom,
   fetchImpl = fetch,
 }) {
   if (ordersEnabled !== true || pixgateEnabled !== true) {
     return apiError(503, 'A criação de pedidos e cobranças reais está desabilitada nesta prévia. Nenhum pedido foi registrado.', true);
   }
   if (!apiKey) return apiError(503, 'A cobrança PIX está temporariamente indisponível.', true);
-  if (body?.paymentMethod === 'parcelado' && (!emailApiKey || !emailFrom)) {
-    return apiError(503, 'O Pix parcelado está temporariamente indisponível porque o envio de e-mail ainda não foi configurado.', true);
-  }
   if (typeof postbackUrl !== 'string' || !postbackUrl.startsWith('https://')) {
     return apiError(503, 'A confirmação automática do PIX ainda não está configurada. Defina uma URL pública HTTPS para o webhook.', true);
   }
@@ -93,10 +92,7 @@ async function processCheckout({
   const order = validation.value;
   const orderId = crypto.randomUUID();
   const paymentKinds = order.paymentMethod === 'parcelado'
-    ? [
-      { kind: 'DEPOSIT', amountCents: order.depositCents },
-      { kind: 'BALANCE', amountCents: order.balanceCents },
-    ]
+    ? [{ kind: 'DEPOSIT', amountCents: order.depositCents }]
     : [{ kind: 'FULL', amountCents: order.totalCents }];
   const payments = paymentKinds.map(({ kind, amountCents }) => {
     const token = crypto.randomBytes(32).toString('base64url');
@@ -252,35 +248,6 @@ async function processCheckout({
     }
   }
 
-  if (order.paymentMethod === 'parcelado') {
-    try {
-      await sendRemainingPixEmail({
-        apiKey: emailApiKey,
-        from: emailFrom,
-        to: order.email,
-        productName: order.product.name,
-        productDose: order.product.dose,
-        orderId,
-        amountCents: order.balanceCents,
-        pix: payments[1].pix,
-        fetchImpl,
-      });
-    } catch {
-      try {
-        await setOrderPaymentStatus(pool, payments[1].id, 'UNKNOWN', payments[1].transactionId);
-        await refreshOrderPaymentStatus(pool, orderId);
-      } catch { /* O pedido permanece para conferência sem armazenar o código Pix. */ }
-      return {
-        statusCode: 502,
-        body: {
-          error: 'As cobranças foram criadas, mas não foi possível confirmar o envio do Pix do saldo por e-mail. O pedido foi registrado para conferência; entre em contato com o suporte e não tente gerar novamente.',
-          retrySafe: false,
-          orderId,
-        },
-      };
-    }
-  }
-
   let qrCodeDataUrl = '';
   const pix = payments[0].pix;
   try {
@@ -305,7 +272,6 @@ async function processCheckout({
       totalValue: Number((order.totalCents / 100).toFixed(2)),
       balanceValue: order.paymentMethod === 'parcelado' ? Number((order.balanceCents / 100).toFixed(2)) : 0,
       paymentMethod: order.paymentMethod,
-      emailSent: order.paymentMethod === 'parcelado',
       status: 'PENDING',
     },
   };

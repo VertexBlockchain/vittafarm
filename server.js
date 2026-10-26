@@ -224,8 +224,6 @@ async function handleCashIn(req, res) {
     postbackUrl,
     ordersEnabled: isOrdersEnabled(),
     pixgateEnabled: process.env.PIXGATE_LIVE_CASHIN === 'true',
-    emailApiKey: process.env.RESEND_API_KEY,
-    emailFrom: process.env.ORDER_EMAIL_FROM,
   }).catch(() => ({
     statusCode: 503,
     body: { error: 'O serviço de pedidos está temporariamente indisponível.', retrySafe: true },

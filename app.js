@@ -23,7 +23,7 @@ const checkoutError = document.querySelector('#checkout-error');
 const checkoutSubmit = document.querySelector('#checkout-submit');
 const checkoutResult = document.querySelector('#pix-result');
 const pixStatusMessage = document.querySelector('#pix-status-message');
-const pixEmailNote = document.querySelector('#pix-email-note');
+const paymentFollowupNote = document.querySelector('#payment-followup-note');
 const orderIdElement = document.querySelector('#order-id');
 const transactionId = document.querySelector('#transaction-id');
 const pixCode = document.querySelector('#pix-code');
@@ -341,7 +341,7 @@ function updatePaymentSummary() {
   const totalCents = selectedProduct.priceCents + SHIPPING_CENTS;
   if (selectedPaymentMethod() === 'parcelado') {
     const depositCents = Math.floor((selectedProduct.priceCents * 35 + 50) / 100) + SHIPPING_CENTS;
-    paymentSummary.textContent = `Total: ${formatPrice(totalCents)} · Pix agora: 35% do produto + frete fixo (${formatPrice(depositCents)}) · Saldo: 65% do produto (${formatPrice(totalCents - depositCents)}) enviado por e-mail para pagar via Pix.`;
+    paymentSummary.textContent = `Total: ${formatPrice(totalCents)} · Pix agora: 35% do produto + frete fixo (${formatPrice(depositCents)}) · Próximas cobranças do saldo (${formatPrice(totalCents - depositCents)}) serão enviadas por e-mail e WhatsApp.`;
     return;
   }
   paymentSummary.textContent = `Total no Pix: ${formatPrice(totalCents)} (produto + frete fixo de R$ 30,00).`;
@@ -520,12 +520,12 @@ async function submitCheckout(event) {
     if (result.paymentMethod === 'parcelado') {
       const balance = Number.isFinite(Number(result.balanceValue)) ? money.format(Number(result.balanceValue)) : 'o saldo restante';
       pixStatusMessage.textContent = `Pedido registrado. O Pix gerado agora cobra 35% do valor do produto mais o frete fixo de R$ 30,00: ${chargedAmount}. O saldo restante não está nesta cobrança. Total do pedido: ${fullTotal}. Escaneie o QR Code ou use o código PIX para pagar a entrada.`;
-      pixEmailNote.textContent = `A cobrança Pix do saldo restante de 65% do produto (${balance}) foi enviada para ${emailInput.value.trim()}. O frete de R$ 30,00 já está incluído na entrada. Confira também a pasta de spam.`;
-      pixEmailNote.hidden = false;
+      paymentFollowupNote.textContent = `As próximas cobranças do saldo (65% do produto, ${balance}) serão enviadas para seu e-mail e WhatsApp cadastrado. O frete de R$ 30,00 já está incluído na entrada.`;
+      paymentFollowupNote.hidden = false;
     } else {
       pixStatusMessage.textContent = `Pedido registrado. Pix à vista de ${chargedAmount} criado (inclui frete fixo de R$ 30,00). Status atual: ${statusLabel(result.status)}. Escaneie o QR Code ou use o código PIX no aplicativo do seu banco.`;
-      pixEmailNote.hidden = true;
-      pixEmailNote.textContent = '';
+      paymentFollowupNote.hidden = true;
+      paymentFollowupNote.textContent = '';
     }
     orderIdElement.textContent = result.orderId;
     transactionId.textContent = result.transactionId;
