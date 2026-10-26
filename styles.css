@@ -37,9 +37,9 @@ button { font: inherit; }
   padding: 6px 18px;
   background: var(--green-dark);
   color: #e8f3ed;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: .14em;
+  letter-spacing: .09em;
   text-transform: uppercase;
 }
 .announcement-dot, .eyebrow-dot {
@@ -263,6 +263,16 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 .dialog-sources { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 17px; }
 .dialog-sources a { color: var(--green-dark); font-size: 11px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 #checkout-form { display: grid; gap: 13px; }
+.payment-methods { display: grid; gap: 9px; min-width: 0; margin: 0; padding: 13px; border: 1px solid #d9e4da; border-radius: 14px; background: #fbfcf8; }
+.payment-methods legend { padding-inline: 7px; color: var(--green-dark); font-family: Manrope, sans-serif; font-size: 13px; font-weight: 800; }
+.payment-option { display: flex; align-items: flex-start; gap: 10px; padding: 11px 12px; border: 1px solid #dce6dd; border-radius: 11px; background: #fff; cursor: pointer; }
+.payment-option:has(input:checked) { border-color: #86b9a3; background: #f1f8f1; box-shadow: 0 0 0 1px rgba(23, 125, 107, .1); }
+.payment-option input { width: 17px; height: 17px; flex: 0 0 auto; margin: 1px 0 0; accent-color: var(--green); }
+.payment-option span { display: grid; gap: 4px; min-width: 0; }
+.payment-option strong { color: var(--ink); font-size: 12px; }
+.payment-option small { color: #61746b; font-size: 10px; font-weight: 400; line-height: 1.5; }
+.payment-method-help, .payment-summary { margin: 0; color: #61746b; font-size: 10px; line-height: 1.55; }
+.payment-summary { padding: 10px 11px; border-radius: 9px; color: var(--green-dark); background: #edf7ef; font-weight: 700; }
 .form-field { display: grid; gap: 7px; color: var(--ink-soft); font-size: 11px; font-weight: 700; }
 .form-field input, .form-field textarea { width: 100%; min-height: 46px; padding: 11px 13px; border: 1px solid #cfdcd2; border-radius: 11px; color: var(--ink); background: #fff; font: 500 14px 'DM Sans', sans-serif; }
 .form-field textarea { min-width: 0; max-width: 100%; min-height: 118px; resize: vertical; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-all; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 11px; line-height: 1.55; }
@@ -328,9 +338,11 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 .account-order p { margin: 8px 0 0; color: #61746b; font-size: 11px; }
 .account-order-status { flex: 0 0 auto; padding: 5px 9px; border: 1px solid #d8dfd9; border-radius: 999px; color: #61746b; background: #f5f7f2; font-size: 10px; font-weight: 700; }
 .account-order-status.is-paid { border-color: #c4dfd0; color: #155c4e; background: #edf7ef; }
+.account-order-status.is-partial { border-color: #bad8c9; color: #285e50; background: #edf7ef; }
 .account-back-link { display: inline-flex; margin-top: 8px; color: var(--green-dark); font-size: 12px; font-weight: 700; }
 
 @media (max-width: 640px) {
+  .announcement-bar { min-height: 36px; font-size: 9px; letter-spacing: .06em; }
   .product-actions { gap: 7px; }
   .product-cta, .product-info-button { min-height: 39px; font-size: 9px; }
   .dialog-content { padding: 21px 18px; }
@@ -430,6 +442,7 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 .admin-transaction-cell { min-width: 145px; }
 .admin-status { display: inline-flex; align-items: center; padding: 5px 8px; border: 1px solid #e7d8b5; border-radius: 999px; color: #765a25; background: #fbf6e9; font-size: 9px; font-weight: 800; white-space: nowrap; }
 .admin-status-pending { border-color: #e7d8b5; color: #765a25; background: #fbf6e9; }
+.admin-status-partially-paid { border-color: #bad8c9; color: #285e50; background: #edf7ef; }
 .admin-status-unknown, .admin-status-creating { border-color: #e5c3ba; color: #853c2e; background: #fbefeb; }
 .admin-status-paid { border-color: #c4dfd0; color: #155c4e; background: #edf7ef; }
 .admin-empty-state { padding: 24px !important; color: #71827b !important; text-align: center; }

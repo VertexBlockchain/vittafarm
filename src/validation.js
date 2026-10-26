@@ -2,7 +2,7 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3
 const ADDRESS_KEYS = new Set(['cep', 'street', 'number', 'complement', 'neighborhood', 'city', 'state']);
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CHECKOUT_KEYS = new Set([
-  'productId', 'checkoutRequestId', 'nome', 'cpf', 'email', 'phone', 'whatsappMarketingConsent', 'password', 'passwordConfirmation', 'device', 'termsConsent', 'address',
+  'productId', 'paymentMethod', 'checkoutRequestId', 'nome', 'cpf', 'email', 'phone', 'whatsappMarketingConsent', 'password', 'passwordConfirmation', 'device', 'termsConsent', 'address',
 ]);
 
 function hasRepeatedDigits(value) {
@@ -63,7 +63,7 @@ function invalid(message) {
   return { ok: false, error: message };
 }
 
-function validateCheckout(body, products, shippingCents = 0) {
+function validateCheckout(body, products, shippingCents = 3000) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return invalid('O formulário está incompleto.');
   if (Object.keys(body).some((key) => !CHECKOUT_KEYS.has(key))) return invalid('O formulário contém campos não permitidos.');
   if (typeof body.checkoutRequestId !== 'string' || !UUID_PATTERN.test(body.checkoutRequestId)) {
@@ -75,8 +75,11 @@ function validateCheckout(body, products, shippingCents = 0) {
   if (!Number.isSafeInteger(product.priceCents) || product.priceCents <= 0) {
     return invalid('O preço deste produto ainda não foi confirmado.');
   }
-  if (!Number.isSafeInteger(shippingCents) || shippingCents !== 0) {
-    return invalid('O envio grátis está temporariamente indisponível.');
+  if (body.paymentMethod !== 'avista' && body.paymentMethod !== 'parcelado') {
+    return invalid('Selecione uma forma de pagamento válida.');
+  }
+  if (!Number.isSafeInteger(shippingCents) || shippingCents !== 3000) {
+    return invalid('O frete fixo está temporariamente indisponível.');
   }
 
   const name = normalizeText(body.nome, 120);
@@ -129,12 +132,17 @@ function validateCheckout(body, products, shippingCents = 0) {
 
   const totalCents = product.priceCents + shippingCents;
   if (!Number.isSafeInteger(totalCents) || totalCents <= 0) return invalid('O valor do pedido é inválido.');
+  const depositCents = body.paymentMethod === 'parcelado'
+    ? Math.floor((product.priceCents * 35 + 50) / 100) + shippingCents
+    : totalCents;
+  const balanceCents = totalCents - depositCents;
 
   return {
     ok: true,
     value: {
       checkoutRequestId: body.checkoutRequestId.toLowerCase(),
       product,
+      paymentMethod: body.paymentMethod,
       nome: name,
       cpf,
       email,
@@ -152,6 +160,8 @@ function validateCheckout(body, products, shippingCents = 0) {
       },
       shippingCents,
       totalCents,
+      depositCents,
+      balanceCents,
     },
   };
 }

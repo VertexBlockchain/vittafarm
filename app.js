@@ -1,4 +1,5 @@
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+const SHIPPING_CENTS = 3000;
 const track = document.querySelector('#products-track');
 const previousButton = document.querySelector('#carousel-prev');
 const nextButton = document.querySelector('#carousel-next');
@@ -16,11 +17,13 @@ const checkoutForm = document.querySelector('#checkout-form');
 const checkoutFormView = document.querySelector('#checkout-form-view');
 const checkoutProductName = document.querySelector('#checkout-product-name');
 const checkoutProductSummary = document.querySelector('#checkout-product-summary');
+const paymentSummary = document.querySelector('#payment-summary');
 const checkoutPackageWarning = document.querySelector('#checkout-package-warning');
 const checkoutError = document.querySelector('#checkout-error');
 const checkoutSubmit = document.querySelector('#checkout-submit');
 const checkoutResult = document.querySelector('#pix-result');
 const pixStatusMessage = document.querySelector('#pix-status-message');
+const pixEmailNote = document.querySelector('#pix-email-note');
 const orderIdElement = document.querySelector('#order-id');
 const transactionId = document.querySelector('#transaction-id');
 const pixCode = document.querySelector('#pix-code');
@@ -172,6 +175,7 @@ function openCheckout(product) {
   checkoutRequestId = checkoutRequestIdFor(product.id);
   lastViaCepValues = { street: '', neighborhood: '', city: '', state: '' };
   checkoutForm.reset();
+  checkoutForm.querySelector('[name="paymentMethod"][value="avista"]').checked = true;
   checkoutError.hidden = true;
   checkoutError.textContent = '';
   checkoutFormView.hidden = false;
@@ -193,8 +197,10 @@ function openCheckout(product) {
   checkoutProductName.textContent = `${product.name} · ${product.dose}`;
   const packageText = product.packageCount ? `Conteúdo da caixa: ${product.packageCount}` : 'Conteúdo da caixa a confirmar';
   const priceUnit = product.priceUnit ? `por ${product.priceUnit}` : 'por caixa';
-  const total = formatPrice(product.priceCents);
-  checkoutProductSummary.textContent = `${packageText}. Valor: ${total} ${priceUnit}. Envio grátis. Total do pedido: ${total}.`;
+  const totalCents = product.priceCents + SHIPPING_CENTS;
+  const total = formatPrice(totalCents);
+  checkoutProductSummary.textContent = `${packageText}. Produto: ${formatPrice(product.priceCents)} ${priceUnit}. Frete fixo: ${formatPrice(SHIPPING_CENTS)}. Total do pedido: ${total}.`;
+  updatePaymentSummary();
   checkoutPackageWarning.textContent = product.packageNote || '';
   checkoutPackageWarning.hidden = product.packageConfidence === 'official';
   researchUseDeclaration.hidden = !product.researchUseOnly;
@@ -258,7 +264,7 @@ function addProductCard(product, index) {
   price.textContent = formatPrice(product.priceCents);
   const shipping = document.createElement('span');
   shipping.className = 'product-shipping-badge';
-  shipping.textContent = 'Envio grátis';
+  shipping.textContent = 'Frete fixo R$ 30,00';
   priceInfo.append(priceLabel, price, shipping);
   priceBlock.append(priceInfo);
 
@@ -319,10 +325,26 @@ function detectDevice() {
 function statusLabel(value) {
   const status = String(value || 'PENDING').toUpperCase();
   if (status === 'PAID') return 'Pagamento confirmado';
+  if (status === 'PARTIALLY_PAID') return 'Entrada paga — saldo pendente';
   if (status === 'PENDING') return 'Pendente';
   if (status === 'UNKNOWN') return 'Em conferência';
   if (status === 'CREATING') return 'Gerando cobrança';
   return status;
+}
+
+function selectedPaymentMethod() {
+  return checkoutForm.querySelector('[name="paymentMethod"]:checked')?.value || 'avista';
+}
+
+function updatePaymentSummary() {
+  if (!selectedProduct || !paymentSummary) return;
+  const totalCents = selectedProduct.priceCents + SHIPPING_CENTS;
+  if (selectedPaymentMethod() === 'parcelado') {
+    const depositCents = Math.floor((selectedProduct.priceCents * 35 + 50) / 100) + SHIPPING_CENTS;
+    paymentSummary.textContent = `Total: ${formatPrice(totalCents)} · Pix agora: 35% do produto + frete fixo (${formatPrice(depositCents)}) · Saldo: 65% do produto (${formatPrice(totalCents - depositCents)}) enviado por e-mail para pagar via Pix.`;
+    return;
+  }
+  paymentSummary.textContent = `Total no Pix: ${formatPrice(totalCents)} (produto + frete fixo de R$ 30,00).`;
 }
 
 function currentCepDigits() {
@@ -456,6 +478,7 @@ async function submitCheckout(event) {
       cache: 'no-store',
       body: JSON.stringify({
         productId: selectedProduct.id,
+        paymentMethod: selectedPaymentMethod(),
         checkoutRequestId,
         nome,
         cpf,
@@ -490,8 +513,20 @@ async function submitCheckout(event) {
     checkoutDialog.classList.add('pix-result-open');
     currentOrderId = result.orderId;
     const value = Number(result.value);
-    const chargedAmount = Number.isFinite(value) ? money.format(value) : formatPrice(selectedProduct.priceCents);
-    pixStatusMessage.textContent = `Pedido registrado. Cobrança de ${chargedAmount} criada, com envio grátis. Status atual: ${statusLabel(result.status)}. Escaneie o QR Code ou use o código PIX no aplicativo do seu banco.`;
+    const chargedAmount = Number.isFinite(value) ? money.format(value) : formatPrice(selectedProduct.priceCents + SHIPPING_CENTS);
+    const fullTotal = Number.isFinite(Number(result.totalValue))
+      ? money.format(Number(result.totalValue))
+      : formatPrice(selectedProduct.priceCents + SHIPPING_CENTS);
+    if (result.paymentMethod === 'parcelado') {
+      const balance = Number.isFinite(Number(result.balanceValue)) ? money.format(Number(result.balanceValue)) : 'o saldo restante';
+      pixStatusMessage.textContent = `Pedido registrado. O Pix gerado agora cobra 35% do valor do produto mais o frete fixo de R$ 30,00: ${chargedAmount}. O saldo restante não está nesta cobrança. Total do pedido: ${fullTotal}. Escaneie o QR Code ou use o código PIX para pagar a entrada.`;
+      pixEmailNote.textContent = `A cobrança Pix do saldo restante de 65% do produto (${balance}) foi enviada para ${emailInput.value.trim()}. O frete de R$ 30,00 já está incluído na entrada. Confira também a pasta de spam.`;
+      pixEmailNote.hidden = false;
+    } else {
+      pixStatusMessage.textContent = `Pedido registrado. Pix à vista de ${chargedAmount} criado (inclui frete fixo de R$ 30,00). Status atual: ${statusLabel(result.status)}. Escaneie o QR Code ou use o código PIX no aplicativo do seu banco.`;
+      pixEmailNote.hidden = true;
+      pixEmailNote.textContent = '';
+    }
     orderIdElement.textContent = result.orderId;
     transactionId.textContent = result.transactionId;
     pixCode.value = result.pix;
@@ -585,6 +620,7 @@ async function loadCatalog() {
     track.addEventListener('scroll', () => requestAnimationFrame(updateCarousel), { passive: true });
     window.addEventListener('resize', updateCarousel);
     checkoutForm.addEventListener('submit', submitCheckout);
+    checkoutForm.querySelectorAll('[name="paymentMethod"]').forEach((input) => input.addEventListener('change', updatePaymentSummary));
     copyPixButton.addEventListener('click', copyPixCode);
     checkPaymentButton.addEventListener('click', checkPaymentStatus);
     lookupCepButton.addEventListener('click', lookupCep);

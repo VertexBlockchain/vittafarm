@@ -13,7 +13,7 @@
   <body>
     <div class="announcement-bar">
       <span class="announcement-dot" aria-hidden="true"></span>
-      <span>Precisa de ajuda? Dúvidas pelo WhatsApp</span>
+      <span>Promoção fecha mês com Pix parcelado</span>
     </div>
 
     <header class="site-header">
@@ -217,7 +217,20 @@
               <span>Quero receber ofertas e novidades da Vitta Farm pelo WhatsApp. Opcional; posso cancelar em Minha conta.</span>
             </label>
             <p class="account-checkout-hint">Na primeira compra, seu acesso será criado. Se já tem conta, use a mesma senha. <a href="/conta">Entrar pela minha conta</a></p>
-            <div class="shipping-notice" role="note"><strong>Envio grátis</strong><span>Frete R$ 0,00 — não será acrescentado ao PIX.</span></div>
+            <fieldset class="payment-methods" aria-describedby="payment-method-help">
+              <legend>Forma de pagamento</legend>
+              <label class="payment-option">
+                <input type="radio" name="paymentMethod" value="avista" checked />
+                <span><strong>Pix à vista</strong><small>Pagamento do total em uma cobrança.</small></span>
+              </label>
+              <label class="payment-option">
+                <input type="radio" name="paymentMethod" value="parcelado" />
+                <span><strong>Pix parcelado</strong><small>35% de entrada agora; o saldo restante será enviado por e-mail em outra cobrança Pix.</small></span>
+              </label>
+              <p class="payment-method-help" id="payment-method-help">O total inclui frete fixo de R$ 30,00.</p>
+              <p class="payment-summary" id="payment-summary" aria-live="polite"></p>
+            </fieldset>
+            <div class="shipping-notice" role="note"><strong>Frete fixo</strong><span>R$ 30,00 — somado ao total do pedido.</span></div>
             <fieldset class="address-fieldset">
               <legend>Endereço para entrega</legend>
               <div class="address-grid">
@@ -252,7 +265,7 @@
             <details class="checkout-terms" id="checkout-terms-details">
               <summary>Termos de compra e privacidade</summary>
               <div class="checkout-terms-content">
-                <p>Nome e CPF/CNPJ são enviados à Pixgate para criar a cobrança. CPF/CNPJ e código PIX copia e cola não são gravados pelo site. Nome, endereço e telefone são guardados para atender o pedido; endereço e telefone não são enviados à Pixgate. O e-mail é usado para acesso à conta e acompanhamento. Ofertas pelo WhatsApp só são enviadas se você marcar a autorização opcional, que pode ser cancelada em Minha conta. A senha é protegida por hash e não é guardada em texto aberto.</p>
+                <p>Nome e CPF/CNPJ são enviados à Pixgate para criar a cobrança. CPF/CNPJ e códigos PIX copia e cola não são gravados pelo site. Nome, endereço e telefone são guardados para atender o pedido; endereço e telefone não são enviados à Pixgate. O e-mail é usado para acesso à conta, acompanhamento e, se você escolher Pix parcelado, envio da cobrança do saldo. Ofertas pelo WhatsApp só são enviadas se você marcar a autorização opcional, que pode ser cancelada em Minha conta. A senha é protegida por hash e não é guardada em texto aberto.</p>
                 <p>Na busca automática de endereço, somente o CEP informado é consultado no ViaCEP.</p>
               </div>
             </details>
@@ -267,6 +280,7 @@
         <section class="pix-result" id="pix-result" aria-live="polite" hidden>
           <h2>PIX criado</h2>
           <p class="dialog-body" id="pix-status-message"></p>
+          <p class="payment-status-message" id="pix-email-note" hidden></p>
           <figure class="pix-qr-figure" id="pix-qr-figure" hidden>
             <img id="pix-qr-image" alt="QR Code PIX da cobrança" width="640" height="640" />
             <figcaption>Escaneie o QR Code no aplicativo do seu banco.</figcaption>
