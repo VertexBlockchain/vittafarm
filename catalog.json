@@ -116,12 +116,12 @@
       "packageNote": "Prévia interna com recorte somente da parte superior visível da embalagem. A imagem original cobre a parte inferior do produto; ela não foi reconstruída. A DINAVISA publicou alerta sobre produtos de retatrutida sem registro e em fase experimental, mas o alerta não identifica especificamente ReduFast 12. Não interpretar este rascunho como confirmação de registro ou autorização.",
       "packageConfidence": "user-image",
       "unitContent": "Dados da apresentação não confirmados independentemente.",
-      "priceCents": null,
+      "priceCents": 70900,
       "priceUnit": "caixa",
       "image": "./images/new/redufast-12-box-crop.jpg",
       "alt": "Recorte da parte superior da embalagem ReduFast 12; o trecho inferior estava encoberto na imagem original.",
-      "category": "Em breve · identidade e registro a confirmar",
-      "explanation": "Rascunho interno sem informação terapêutica. A DINAVISA alertou que os produtos de retatrutida tratados no alerta 07/2025 não tinham registro sanitário no Paraguai, estavam em fase experimental e não estavam autorizados para uso geral. Esse alerta não autentica a marca ReduFast 12; o estado do SKU exato permanece por confirmar.",
+      "category": "Retatrutida · apresentação a confirmar",
+      "explanation": "A DINAVISA alertou que os produtos de retatrutida tratados no alerta 07/2025 não tinham registro sanitário no Paraguai, estavam em fase experimental e não estavam autorizados para uso geral. Esse alerta não autentica a marca ReduFast 12; o estado do SKU exato permanece por confirmar.",
       "sources": [
         {
           "title": "DINAVISA — Alerta Sanitária 07/2025 sobre retatrutida",
@@ -131,8 +131,7 @@
           "title": "DINAVISA — consulta pública de registros sanitários",
           "url": "https://dnvspy.mspbs.gov.py/dnvspy/reportes_publicos/consulta_publica_rs/consulta-publica-rs.html"
         }
-      ],
-      "availability": "coming-soon"
+      ]
     },
     {
       "id": "bpc-157",
@@ -189,6 +188,25 @@
           "url": "https://dnvspy.mspbs.gov.py/dnvspy/reportes_publicos/consulta_publica_rs/consulta-publica-rs.html"
         }
       ]
+    },
+    {
+      "id": "ipeptide-tb500-bpc157",
+      "name": "iPeptide TB-500 + BPC-157",
+      "manufacturer": "iPeptide (conforme rótulo da imagem)",
+      "dose": "TB-500 10 mg + BPC-157 10 mg",
+      "packageCount": "1 frasco + Água BAC 2 mL (conforme rótulo enviado)",
+      "packageNote": "A imagem enviada informa TB-500 10 mg + BPC-157 10 mg e Água BAC 2 mL. O rótulo também informa “For subcutaneous injection” e “Use only under research”. A apresentação, autenticidade, esterilidade, registro e condição de venda não foram verificados independentemente.",
+      "packageConfidence": "user-image",
+      "unitContent": "TB-500 10 mg + BPC-157 10 mg; Água BAC 2 mL conforme identificação da imagem, sem validação independente.",
+      "priceCents": 36000,
+      "priceUnit": "frasco",
+      "image": "./images/new/ipeptide-tb500-bpc157-20mg.jpg",
+      "alt": "Frasco iPeptide TB-500 + BPC-157 20 mg com Água BAC 2 mL, conforme imagem fornecida",
+      "category": "Peptídeo · uso exclusivo para pesquisa no rótulo",
+      "researchUseOnly": true,
+      "researchUseDisclosure": "O rótulo da imagem informa “For subcutaneous injection” e “Use only under research”; isso não é uma instrução de uso humano nem uma confirmação de autorização sanitária.",
+      "explanation": "Ficha baseada somente nas informações visíveis no rótulo enviado. Não confirma composição, esterilidade, autenticidade, segurança, registro ou autorização comercial do produto.",
+      "sources": []
     },
     {
       "id": "lipoless",
