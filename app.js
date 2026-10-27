@@ -50,7 +50,6 @@ const addressInputs = {
   state: document.querySelector('#customer-state'),
 };
 const termsConsentInput = document.querySelector('#terms-consent');
-const researchUseDeclaration = document.querySelector('#research-use-declaration');
 const checkoutTermsDetails = document.querySelector('#checkout-terms-details');
 const arrowIcon = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M10 5l5 5-5 5" /></svg>';
 const AMBIGUOUS_CHECKOUT_PREFIX = 'vitta:ambiguous-checkout:';
@@ -196,7 +195,6 @@ function openCheckout(product) {
   const parceladoTotalCents = Math.floor((totalCents * 110 + 50) / 100);
   checkoutProductSummary.textContent = `${packageText}. Produto: ${formatPrice(product.priceCents)} ${priceUnit}. Frete fixo: ${formatPrice(SHIPPING_CENTS)}. Total à vista: ${total}. Total parcelado (+10%): ${formatPrice(parceladoTotalCents)}.`;
   updatePaymentSummary();
-  researchUseDeclaration.hidden = !product.researchUseOnly;
   checkoutTermsDetails.open = false;
 
   const previousUncertainOrder = ambiguousCheckout(product.id);

@@ -233,7 +233,6 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 
 .product-package { margin: -9px 0 16px; color: #526d63; font-size: 11px; font-weight: 700; }
 .product-package-unverified { color: #80673c; }
-.product-warning { margin: -7px 0 14px; padding: 8px 10px; border-left: 2px solid #b57a22; border-radius: 0 7px 7px 0; color: #755725; background: #fbf5e8; font-size: 10px; font-weight: 700; line-height: 1.45; }
 .product-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 13px; }
 .product-cta, .product-info-button { width: 100%; min-height: 40px; cursor: pointer; }
 .product-cta { color: #fff; background: var(--green); border-color: var(--green); }
