@@ -113,7 +113,7 @@
       "manufacturer": "Fabricante a confirmar pela embalagem/documentação",
       "dose": "Retatrutida (conforme rótulo da imagem)",
       "packageCount": "Apresentação e conteúdo a confirmar",
-      "packageNote": "Prévia interna com recorte somente da parte superior visível da embalagem. A imagem original cobre a parte inferior do produto; ela não foi reconstruída. A DINAVISA publicou alerta sobre produtos de retatrutida sem registro e em fase experimental, mas o alerta não identifica especificamente ReduFast 12. Não interpretar este rascunho como confirmação de registro ou autorização.",
+      "packageNote": "A imagem mostra somente a parte superior visível da embalagem. A imagem original cobre a parte inferior do produto; ela não foi reconstruída. A DINAVISA publicou alerta sobre produtos de retatrutida sem registro e em fase experimental, mas o alerta não identifica especificamente ReduFast 12. Isso não confirma registro ou autorização.",
       "packageConfidence": "user-image",
       "unitContent": "Dados da apresentação não confirmados independentemente.",
       "priceCents": 70900,
@@ -177,7 +177,7 @@
       "category": "Imagem recebida · uso de pesquisa no rótulo",
       "researchUseOnly": true,
       "researchUseDisclosure": "O rótulo enviado informa “research use only”; não é uma instrução de uso humano nem uma confirmação de autorização sanitária.",
-      "explanation": "Ficha de rascunho baseada no texto do rótulo. A DINAVISA publicou alertas sobre produtos TB-500 específicos sem registro; a marca e apresentação deste frasco não foram confirmadas como idênticas aos itens citados nos alertas.",
+      "explanation": "Ficha baseada no texto do rótulo. A DINAVISA publicou alertas sobre produtos TB-500 específicos sem registro; a marca e apresentação deste frasco não foram confirmadas como idênticas aos itens citados nos alertas.",
       "sources": [
         {
           "title": "DINAVISA — Alerta Sanitária 05/2026 sobre peptídeos não registrados",
