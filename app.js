@@ -199,7 +199,8 @@ function openCheckout(product) {
   const priceUnit = product.priceUnit ? `por ${product.priceUnit}` : 'por caixa';
   const totalCents = product.priceCents + SHIPPING_CENTS;
   const total = formatPrice(totalCents);
-  checkoutProductSummary.textContent = `${packageText}. Produto: ${formatPrice(product.priceCents)} ${priceUnit}. Frete fixo: ${formatPrice(SHIPPING_CENTS)}. Total do pedido: ${total}.`;
+  const parceladoTotalCents = Math.floor((totalCents * 110 + 50) / 100);
+  checkoutProductSummary.textContent = `${packageText}. Produto: ${formatPrice(product.priceCents)} ${priceUnit}. Frete fixo: ${formatPrice(SHIPPING_CENTS)}. Total à vista: ${total}. Total parcelado (+10%): ${formatPrice(parceladoTotalCents)}.`;
   updatePaymentSummary();
   checkoutPackageWarning.textContent = product.packageNote || '';
   checkoutPackageWarning.hidden = product.packageConfidence === 'official';
@@ -273,11 +274,12 @@ function addProductCard(product, index) {
   const buy = document.createElement('button');
   buy.className = 'product-cta';
   buy.type = 'button';
-  buy.innerHTML = `Comprar ${arrowIcon}`;
-  const canBuy = hasPrice(product);
+  const comingSoon = product.availability === 'coming-soon';
+  buy.innerHTML = comingSoon ? 'Em breve' : `Comprar ${arrowIcon}`;
+  const canBuy = hasPrice(product) && !comingSoon;
   buy.disabled = !canBuy;
-  buy.title = canBuy ? '' : 'Preço ainda não confirmado; compra desabilitada.';
-  buy.setAttribute('aria-label', canBuy ? `Comprar ${product.name}, ${product.dose}` : `${product.name}, preço a confirmar; compra desabilitada`);
+  buy.title = canBuy ? '' : comingSoon ? 'Produto ainda não disponível para compra.' : 'Preço ainda não confirmado; compra desabilitada.';
+  buy.setAttribute('aria-label', canBuy ? `Comprar ${product.name}, ${product.dose}` : comingSoon ? `${product.name}, em breve; compra desabilitada` : `${product.name}, preço a confirmar; compra desabilitada`);
   if (canBuy) buy.addEventListener('click', () => openCheckout(product));
   const more = document.createElement('button');
   more.className = 'product-info-button';
@@ -338,13 +340,17 @@ function selectedPaymentMethod() {
 
 function updatePaymentSummary() {
   if (!selectedProduct || !paymentSummary) return;
-  const totalCents = selectedProduct.priceCents + SHIPPING_CENTS;
+  const baseTotalCents = selectedProduct.priceCents + SHIPPING_CENTS;
   if (selectedPaymentMethod() === 'parcelado') {
-    const depositCents = Math.floor((selectedProduct.priceCents * 35 + 50) / 100) + SHIPPING_CENTS;
-    paymentSummary.textContent = `Total: ${formatPrice(totalCents)} · Pix agora: 35% do produto + frete fixo (${formatPrice(depositCents)}) · Próximas cobranças do saldo (${formatPrice(totalCents - depositCents)}) serão enviadas por e-mail e WhatsApp.`;
+    const parceladoTotalCents = Math.floor((baseTotalCents * 110 + 50) / 100);
+    const depositCents = Math.floor((parceladoTotalCents * 35 + 50) / 100);
+    const balanceCents = parceladoTotalCents - depositCents;
+    const firstInstallmentCents = Math.ceil(balanceCents / 2);
+    const secondInstallmentCents = balanceCents - firstInstallmentCents;
+    paymentSummary.textContent = `Total parcelado: ${formatPrice(parceladoTotalCents)} (produto + frete, com acréscimo de 10%) · Pix agora: 35% (${formatPrice(depositCents)}) · Saldo em 2 parcelas provisórias: ${formatPrice(firstInstallmentCents)} + ${formatPrice(secondInstallmentCents)}.`;
     return;
   }
-  paymentSummary.textContent = `Total no Pix: ${formatPrice(totalCents)} (produto + frete fixo de R$ 30,00).`;
+  paymentSummary.textContent = `Total no Pix: ${formatPrice(baseTotalCents)} (produto + frete fixo de R$ 30,00).`;
 }
 
 function currentCepDigits() {
@@ -519,8 +525,8 @@ async function submitCheckout(event) {
       : formatPrice(selectedProduct.priceCents + SHIPPING_CENTS);
     if (result.paymentMethod === 'parcelado') {
       const balance = Number.isFinite(Number(result.balanceValue)) ? money.format(Number(result.balanceValue)) : 'o saldo restante';
-      pixStatusMessage.textContent = `Pedido registrado. O Pix gerado agora cobra 35% do valor do produto mais o frete fixo de R$ 30,00: ${chargedAmount}. O saldo restante não está nesta cobrança. Total do pedido: ${fullTotal}. Escaneie o QR Code ou use o código PIX para pagar a entrada.`;
-      paymentFollowupNote.textContent = `As próximas cobranças do saldo (65% do produto, ${balance}) serão enviadas para seu e-mail e WhatsApp cadastrado. O frete de R$ 30,00 já está incluído na entrada.`;
+      pixStatusMessage.textContent = `Pedido registrado. O Pix gerado agora cobra 35% do total parcelado (produto + frete com acréscimo de 10%): ${chargedAmount}. O saldo restante não está nesta cobrança. Total parcelado: ${fullTotal}. Escaneie o QR Code ou use o código PIX para pagar a entrada.`;
+      paymentFollowupNote.textContent = `O saldo restante (${balance}) será enviado em duas cobranças provisórias por e-mail e WhatsApp cadastrado. O frete de R$ 30,00 já está incluído na base antes do acréscimo.`;
       paymentFollowupNote.hidden = false;
     } else {
       pixStatusMessage.textContent = `Pedido registrado. Pix à vista de ${chargedAmount} criado (inclui frete fixo de R$ 30,00). Status atual: ${statusLabel(result.status)}. Escaneie o QR Code ou use o código PIX no aplicativo do seu banco.`;

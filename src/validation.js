@@ -130,10 +130,13 @@ function validateCheckout(body, products, shippingCents = 3000) {
   if (!city || city.length < 2) return invalid('Informe a cidade.');
   if (!state || !/^[A-Za-z]{2}$/.test(state)) return invalid('Informe a UF com duas letras.');
 
-  const totalCents = product.priceCents + shippingCents;
-  if (!Number.isSafeInteger(totalCents) || totalCents <= 0) return invalid('O valor do pedido é inválido.');
+  const baseTotalCents = product.priceCents + shippingCents;
+  if (!Number.isSafeInteger(baseTotalCents) || baseTotalCents <= 0) return invalid('O valor do pedido é inválido.');
+  const totalCents = body.paymentMethod === 'parcelado'
+    ? Math.floor((baseTotalCents * 110 + 50) / 100)
+    : baseTotalCents;
   const depositCents = body.paymentMethod === 'parcelado'
-    ? Math.floor((product.priceCents * 35 + 50) / 100) + shippingCents
+    ? Math.floor((totalCents * 35 + 50) / 100)
     : totalCents;
   const balanceCents = totalCents - depositCents;
 

@@ -159,11 +159,12 @@ test('Pix à vista inclui frete, persiste pedido e pagamento antes da Pixgate', 
   assert.ok(events.indexOf('insert-payment') < events.indexOf('pixgate'));
 });
 
-test('Pix parcelado funciona sem configuração de e-mail e gera só 35% do produto mais frete', async () => {
+test('Pix parcelado funciona sem configuração de e-mail e gera 35% do total com acréscimo', async () => {
   const events = [];
   const pool = mockedPool(events);
-  const depositCents = Math.floor((products.lipoless.priceCents * 35 + 50) / 100) + 3000;
-  const totalCents = products.lipoless.priceCents + 3000;
+  const baseTotalCents = products.lipoless.priceCents + 3000;
+  const totalCents = Math.floor((baseTotalCents * 110 + 50) / 100);
+  const depositCents = Math.floor((totalCents * 35 + 50) / 100);
   const balanceCents = totalCents - depositCents;
   let pixCount = 0;
   const result = await processCheckout({
@@ -175,7 +176,7 @@ test('Pix parcelado funciona sem configuração de e-mail e gera só 35% do prod
       pixCount += 1;
       const payload = JSON.parse(init.body);
       assert.equal(payload.valor, (depositCents / 100).toFixed(2));
-      assert.match(payload.descricao, /Entrada 35% \+ frete fixo - Frete fixo R\$ 30,00/);
+      assert.match(payload.descricao, /Entrada 35% do total parcelado \(\+10%\) - Frete fixo R\$ 30,00/);
       return pixResponse(pixCount);
     },
   });

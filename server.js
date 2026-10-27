@@ -41,7 +41,7 @@ const MAX_BODY_BYTES = 16 * 1024;
 const PRODUCTS = Object.freeze(Object.fromEntries(catalog.products.map((product) => [product.id, product])));
 const SHIPPING_CENTS = 3000;
 const publicRootFiles = new Set(['index.html', 'styles.css', 'app.js', 'admin.js', 'account.html', 'account.js', 'catalog.json', 'manus-routes.json']);
-const publicImagePath = /^images\/[a-z0-9._-]+\.(?:png|jpe?g|svg|webp)$/i;
+const publicImagePath = /^images\/(?:new\/)?[a-z0-9._-]+\.(?:png|jpe?g|svg|webp)$/i;
 const loginFailures = new Map();
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const MAX_LOGIN_FAILURES = 8;

@@ -11,7 +11,7 @@ function buildPixgatePayload({ nome, cpf, product, device, postbackUrl, amountCe
   if (typeof postbackUrl !== 'string' || !postbackUrl.startsWith('https://')) {
     throw new Error('A URL de confirmação Pixgate precisa ser pública e usar HTTPS.');
   }
-  const paymentLabel = paymentKind === 'DEPOSIT' ? 'Entrada 35% + frete fixo' : paymentKind === 'BALANCE' ? 'Saldo 65% do produto' : 'À vista';
+  const paymentLabel = paymentKind === 'DEPOSIT' ? 'Entrada 35% do total parcelado (+10%)' : paymentKind === 'BALANCE' ? 'Saldo parcelado' : 'À vista';
   const shippingLabel = paymentKind === 'BALANCE'
     ? 'Frete fixo R$ 30,00 já cobrado na entrada'
     : 'Frete fixo R$ 30,00';

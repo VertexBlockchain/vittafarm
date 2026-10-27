@@ -1,5 +1,5 @@
 {
-  "shippingCents": 0,
+  "shippingCents": 3000,
   "principle": {
     "name": "Tirzepatida",
     "explanation": "A tirzepatida ativa os receptores GIP e GLP-1. A bula oficial descreve aumento da secreção de insulina e redução do glucagon dependentes da glicose. Esta é uma informação farmacológica geral; consulte a bula específica do produto e um profissional de saúde.",
@@ -12,6 +12,185 @@
   },
   "products": [
     {
+      "id": "metandrostenolona-landerlan",
+      "name": "Metandrostenolona Landerlan",
+      "manufacturer": "Landerlan (conforme rótulo da imagem)",
+      "dose": "10 mg",
+      "packageCount": "100 comprimidos (conforme rótulo enviado)",
+      "packageNote": "A consulta DINAVISA encontrou um registro vigente da denominação METANDROSTENOLONA 10 mg LANDERLAN (MS-4567-4), mas a ficha não confirma esta caixa de 100 comprimidos nem sua condição atual de venda. Confirmar o SKU exato e as regras de publicidade antes de qualquer publicação.",
+      "packageConfidence": "user-image",
+      "unitContent": "10 mg; embalagem de 100 comprimidos conforme imagem enviada, sem validação independente.",
+      "priceCents": 8000,
+      "priceUnit": "caixa",
+      "image": "./images/new/metandrostenolona-landerlan-10mg.jpg",
+      "alt": "Caixa e frasco de Metandrostenolona Landerlan 10 mg, conforme imagem fornecida",
+      "category": "Imagem recebida · apresentação a conferir",
+      "explanation": "Esta ficha de demonstração repete somente o nome, a concentração e a quantidade visíveis/informadas para a imagem. Não contém orientação de uso. A correspondência do registro público com esta apresentação exata e a condição de divulgação permanecem pendentes de confirmação.",
+      "sources": [
+        {
+          "title": "DINAVISA — consulta pública de registros sanitários",
+          "url": "https://dnvspy.mspbs.gov.py/dnvspy/reportes_publicos/consulta_publica_rs/consulta-publica-rs.html"
+        },
+        {
+          "title": "DINAVISA — ficha do registro MS-4567-4 (denominação 10 mg Landerlan)",
+          "url": "https://dnvspy.mspbs.gov.py/dnvspy/page-qr-rs.php?param=eXpscDBGNDBDRUhad1hKUXlVOTJNQT09OjqrLrcgp9IZOdVxVjbOm/lJ"
+        }
+      ]
+    },
+    {
+      "id": "drostanolona-landerlan",
+      "name": "Drostanolona Propionato Landerlan",
+      "manufacturer": "Landerlan (conforme rótulo da imagem)",
+      "dose": "100 mg/mL",
+      "packageCount": "Apresentação conforme a imagem; unidades a confirmar",
+      "packageNote": "A ficha pública DINAVISA localizada corresponde à denominação DROSTANOLONA PROPIONATO 100 mg/mL LANDERLAN e informa vencimento em 26/06/2028, mas não confirma a embalagem da imagem, fabricante físico nem condição de venda. Validar o documento vigente e as regras de publicidade antes de qualquer publicação.",
+      "packageConfidence": "user-image",
+      "unitContent": "100 mg/mL conforme a denominação da ficha pública; conteúdo por frasco não confirmado nesta prévia.",
+      "priceCents": 25000,
+      "priceUnit": "caixa",
+      "image": "./images/new/drostanolona-propionato-landerlan-100mg-ml.webp",
+      "alt": "Embalagem Landerlan de Drostanolona Propionato 100 mg/mL, conforme imagem fornecida",
+      "category": "Imagem recebida · apresentação a conferir",
+      "explanation": "Esta ficha transcreve o nome e a concentração indicados pela imagem. Não fornece indicação, posologia ou recomendação clínica. Apresentação exata, condição de venda e permissão de publicidade precisam ser verificadas antes de exibição pública.",
+      "sources": [
+        {
+          "title": "DINAVISA — consulta pública de registros sanitários",
+          "url": "https://dnvspy.mspbs.gov.py/dnvspy/reportes_publicos/consulta_publica_rs/consulta-publica-rs.html"
+        },
+        {
+          "title": "DINAVISA — ficha pública da denominação Drostanolona Propionato 100 mg/mL Landerlan",
+          "url": "https://dnvspy.mspbs.gov.py/dnvspy/page-qr-rs.php?param=azc1TEhGMWVJOGZ1MHlVZ3VXQVdadz09OjqemtGcCLuLtRMaNkRmKJ1h"
+        }
+      ]
+    },
+    {
+      "id": "durateson-plus",
+      "name": "Durateson Plus",
+      "manufacturer": "Fabricante a confirmar pela embalagem/documentação",
+      "dose": "250 mg (conforme imagem enviada)",
+      "packageCount": "Apresentação e conteúdo a confirmar",
+      "packageNote": "A consulta pública encontrou um registro de grafia/composição próxima (“DURATESTON PLUS”), mas não confirmou que corresponda ao produto, fabricante ou apresentação Durateson Plus 250 mg da imagem. Não presumir equivalência. Verificar o registro do SKU exato e a condição de divulgação antes de publicar.",
+      "packageConfidence": "user-image",
+      "unitContent": "A apresentação da imagem não foi autenticada nesta prévia.",
+      "priceCents": 16000,
+      "priceUnit": "caixa",
+      "image": "./images/new/durateson-plus-250mg.webp",
+      "alt": "Embalagem Durateson Plus 250 mg conforme imagem fornecida",
+      "category": "Imagem recebida · identidade a confirmar",
+      "explanation": "O nome e a concentração são apresentados conforme a imagem enviada. O registro de denominação semelhante encontrado não comprova que este produto seja o mesmo. Esta página de demonstração evita alegações de uso e aguarda confirmação documental da identidade e autorização.",
+      "sources": [
+        {
+          "title": "DINAVISA — consulta pública de registros sanitários",
+          "url": "https://dnvspy.mspbs.gov.py/dnvspy/reportes_publicos/consulta_publica_rs/consulta-publica-rs.html"
+        }
+      ]
+    },
+    {
+      "id": "oxitoland-oximetolona",
+      "name": "Oxitoland",
+      "manufacturer": "Fabricante a confirmar pela embalagem/documentação",
+      "dose": "Oximetolona 50 mg",
+      "packageCount": "20 comprimidos (conforme identificação enviada)",
+      "packageNote": "A busca textual no cadastro DINAVISA não retornou resultado para Oxytoland/Oxitoland/oximetolona; isso não é uma determinação final sobre todas as grafias ou autorizações. A apresentação exata, registro e condição de venda não foram confirmados. Conferir com a DINAVISA antes de qualquer divulgação pública.",
+      "packageConfidence": "user-image",
+      "unitContent": "50 mg; 20 comprimidos conforme a identificação da imagem enviada.",
+      "priceCents": 6500,
+      "priceUnit": "caixa",
+      "image": "./images/new/oxitoland-oximetolona-50mg.png",
+      "alt": "Caixa de Oxitoland/Oxitoland Oximetolona 50 mg, 20 comprimidos, conforme imagem fornecida",
+      "category": "Imagem recebida · registro a confirmar",
+      "explanation": "Esta ficha de demonstração repete somente as informações declaradas para a apresentação na imagem. Identidade, registro, composição completa e condição de venda não foram confirmados aqui. Sem orientação de uso ou alegações de resultado.",
+      "sources": [
+        {
+          "title": "DINAVISA — consulta pública de registros sanitários",
+          "url": "https://dnvspy.mspbs.gov.py/dnvspy/reportes_publicos/consulta_publica_rs/consulta-publica-rs.html"
+        }
+      ]
+    },
+    {
+      "id": "redufast-12",
+      "name": "ReduFast 12",
+      "manufacturer": "Fabricante a confirmar pela embalagem/documentação",
+      "dose": "Retatrutida (conforme rótulo da imagem)",
+      "packageCount": "Apresentação e conteúdo a confirmar",
+      "packageNote": "Prévia interna com recorte somente da parte superior visível da embalagem. A imagem original cobre a parte inferior do produto; ela não foi reconstruída. A DINAVISA publicou alerta sobre produtos de retatrutida sem registro e em fase experimental, mas o alerta não identifica especificamente ReduFast 12. Não interpretar este rascunho como confirmação de registro ou autorização.",
+      "packageConfidence": "user-image",
+      "unitContent": "Dados da apresentação não confirmados independentemente.",
+      "priceCents": null,
+      "priceUnit": "caixa",
+      "image": "./images/new/redufast-12-box-crop.jpg",
+      "alt": "Recorte da parte superior da embalagem ReduFast 12; o trecho inferior estava encoberto na imagem original.",
+      "category": "Em breve · identidade e registro a confirmar",
+      "explanation": "Rascunho interno sem informação terapêutica. A DINAVISA alertou que os produtos de retatrutida tratados no alerta 07/2025 não tinham registro sanitário no Paraguai, estavam em fase experimental e não estavam autorizados para uso geral. Esse alerta não autentica a marca ReduFast 12; o estado do SKU exato permanece por confirmar.",
+      "sources": [
+        {
+          "title": "DINAVISA — Alerta Sanitária 07/2025 sobre retatrutida",
+          "url": "https://dinavisa.gov.py/wp-content/uploads/2025/06/ALERTA-SANITARIA-RETRATUTIDE-URGENTE.pdf"
+        },
+        {
+          "title": "DINAVISA — consulta pública de registros sanitários",
+          "url": "https://dnvspy.mspbs.gov.py/dnvspy/reportes_publicos/consulta_publica_rs/consulta-publica-rs.html"
+        }
+      ],
+      "availability": "coming-soon"
+    },
+    {
+      "id": "bpc-157",
+      "name": "BPC-157",
+      "manufacturer": "Fabricante/marca a confirmar pela embalagem",
+      "dose": "1000 mcg (conforme identificação enviada)",
+      "packageCount": "60 cápsulas (conforme identificação enviada)",
+      "packageNote": "A DINAVISA publicou alertas sobre produtos peptídicos sem registro, incluindo BPC-157 em outras marcas/apresentações; as fontes não confirmam que esta cápsula seja o mesmo SKU. O fabricante e a autorização da apresentação exata não foram identificados.",
+      "packageConfidence": "user-image",
+      "unitContent": "1000 mcg e 60 cápsulas conforme identificação/imagem enviada; não verificado independentemente.",
+      "priceCents": 17000,
+      "priceUnit": "frasco",
+      "image": "./images/new/bpc-157-1000mcg.webp",
+      "alt": "Frasco rotulado BPC-157 1000 mcg, 60 cápsulas, conforme imagem fornecida",
+      "category": "Imagem recebida · registro a confirmar",
+      "researchUseOnly": true,
+      "researchUseDisclosure": "O rótulo da imagem indica uso exclusivo para pesquisa; esta prévia não o apresenta como instrução de consumo humano.",
+      "explanation": "Esta ficha descreve somente o rótulo informado. A DINAVISA alerta que produtos peptídicos específicos com BPC-157 não tinham registro vigente; os alertas consultados não confirmam a identidade desta apresentação oral. Registro, composição e condição regulatória do SKU exato permanecem pendentes.",
+      "sources": [
+        {
+          "title": "DINAVISA — Alerta Sanitária 05/2026 sobre peptídeos não registrados",
+          "url": "https://dinavisa.gov.py/wp-content/uploads/2026/03/Alerta-Sanitaria-PEPTIDOS.pdf"
+        },
+        {
+          "title": "DINAVISA — consulta pública de registros sanitários",
+          "url": "https://dnvspy.mspbs.gov.py/dnvspy/reportes_publicos/consulta_publica_rs/consulta-publica-rs.html"
+        }
+      ]
+    },
+    {
+      "id": "tb-500",
+      "name": "TB-500",
+      "manufacturer": "Fabricante/marca a confirmar pela embalagem",
+      "dose": "5 mg (conforme identificação enviada)",
+      "packageCount": "1 frasco mostrado na imagem",
+      "packageNote": "O rótulo da imagem informa “research use only”. Alertas DINAVISA citam produtos TB-500 específicos sem registro, incluindo Evoform TB-500; não confirmam que este frasco seja o mesmo fabricante ou SKU. Não interpretar a imagem como autorização comercial.",
+      "packageConfidence": "user-image",
+      "unitContent": "5 mg conforme identificação enviada; composição/autenticidade não validadas.",
+      "priceCents": 48000,
+      "priceUnit": "frasco",
+      "image": "./images/new/tb-500-5mg.jpg",
+      "alt": "Frasco TB-500 5 mg com rótulo research use only, conforme imagem fornecida",
+      "category": "Imagem recebida · uso de pesquisa no rótulo",
+      "researchUseOnly": true,
+      "researchUseDisclosure": "O rótulo enviado informa “research use only”; não é uma instrução de uso humano nem uma confirmação de autorização sanitária.",
+      "explanation": "Ficha de rascunho baseada no texto do rótulo. A DINAVISA publicou alertas sobre produtos TB-500 específicos sem registro; a marca e apresentação deste frasco não foram confirmadas como idênticas aos itens citados nos alertas.",
+      "sources": [
+        {
+          "title": "DINAVISA — Alerta Sanitária 05/2026 sobre peptídeos não registrados",
+          "url": "https://dinavisa.gov.py/wp-content/uploads/2026/03/Alerta-Sanitaria-PEPTIDOS.pdf"
+        },
+        {
+          "title": "DINAVISA — consulta pública de registros sanitários",
+          "url": "https://dnvspy.mspbs.gov.py/dnvspy/reportes_publicos/consulta_publica_rs/consulta-publica-rs.html"
+        }
+      ]
+    },
+    {
       "id": "lipoless",
       "name": "Lipoless",
       "manufacturer": "Eticos",
@@ -21,12 +200,19 @@
       "packageConfidence": "official",
       "unitContent": "Cada seringa: 15 mg em 0,5 mL.",
       "packageSources": [
-        { "title": "Lipoless® 15 — Eticos", "url": "https://eticos.com.py/producto/lipoless-15" },
-        { "title": "Prospecto oficial de Lipoless 15 — Eticos", "url": "https://eticos.com.py/wp-content/uploads/2025/05/LIPOLESS-SOL-INY-C-VASTAGO-VP-PRO.pdf" }
+        {
+          "title": "Lipoless® 15 — Eticos",
+          "url": "https://eticos.com.py/producto/lipoless-15"
+        },
+        {
+          "title": "Prospecto oficial de Lipoless 15 — Eticos",
+          "url": "https://eticos.com.py/wp-content/uploads/2025/05/LIPOLESS-SOL-INY-C-VASTAGO-VP-PRO.pdf"
+        }
       ],
       "priceCents": 62990,
       "image": "./images/lipoless.png",
-      "alt": "Embalagem Lipoless 15 mg do Laboratório Eticos"
+      "alt": "Embalagem Lipoless 15 mg do Laboratório Eticos",
+      "explanation": ""
     },
     {
       "id": "tirzec",
@@ -38,12 +224,19 @@
       "packageConfidence": "official",
       "unitContent": "Volume declarado por frasco: 2 mL; massa de tirzepatida por frasco não confirmada na página do fabricante.",
       "packageSources": [
-        { "title": "TIRZEC 15 — Quimfa", "url": "https://www.quimfa.com.py/producto/tirzec-15/" },
-        { "title": "Prospecto oficial de TIRZEC — Quimfa", "url": "https://www.quimfa.com.py/prospectos/683.docx" }
+        {
+          "title": "TIRZEC 15 — Quimfa",
+          "url": "https://www.quimfa.com.py/producto/tirzec-15/"
+        },
+        {
+          "title": "Prospecto oficial de TIRZEC — Quimfa",
+          "url": "https://www.quimfa.com.py/prospectos/683.docx"
+        }
       ],
       "priceCents": 62990,
       "image": "./images/tirzec.png",
-      "alt": "Embalagem Tirzec 15 mg da Quimfa"
+      "alt": "Embalagem Tirzec 15 mg da Quimfa",
+      "explanation": ""
     },
     {
       "id": "gluconex",
@@ -55,13 +248,23 @@
       "packageConfidence": "retail-only",
       "unitContent": "O conteúdo de 15 mg/1 mL por frasco é informado por varejistas, mas não foi confirmado oficialmente.",
       "packageSources": [
-        { "title": "Apresentações de Gluconex — Lasca (não informa a quantidade por caixa)", "url": "https://www.lasca.com.py/news/899529" },
-        { "title": "Gluconex 15 mg — Farmacia Santa Rita (listagem comercial)", "url": "https://farmaciasantaritaparaguai.com.br/p/gluconex-15-mg" },
-        { "title": "Gluconex 15 — Farmacia do Sul (listagem comercial)", "url": "https://farmaciadosul.com/producto/gluconex-15-2/" }
+        {
+          "title": "Apresentações de Gluconex — Lasca (não informa a quantidade por caixa)",
+          "url": "https://www.lasca.com.py/news/899529"
+        },
+        {
+          "title": "Gluconex 15 mg — Farmacia Santa Rita (listagem comercial)",
+          "url": "https://farmaciasantaritaparaguai.com.br/p/gluconex-15-mg"
+        },
+        {
+          "title": "Gluconex 15 — Farmacia do Sul (listagem comercial)",
+          "url": "https://farmaciadosul.com/producto/gluconex-15-2/"
+        }
       ],
       "priceCents": 67290,
       "image": "./images/gluconex.jpg",
-      "alt": "Caixa Gluconex 15 mg da Lasca"
+      "alt": "Caixa Gluconex 15 mg da Lasca",
+      "explanation": ""
     },
     {
       "id": "tirzedral",
@@ -73,12 +276,19 @@
       "packageConfidence": "official",
       "unitContent": "Cada seringa: 5 mg em 0,5 mL.",
       "packageSources": [
-        { "title": "Prospecto oficial de Tirzedral 5 — Laboratorios Catedral", "url": "https://laboratorioscatedral.com.py/wp-content/uploads/Prospecto-Tirzedral.pdf" },
-        { "title": "Tirzedral 5 mg, caixa com 4 seringas — Farmacia Catedral", "url": "https://www.farmaciacatedral.com.py/producto/19324/tirzedral-5mg-cj-x-4-jerprellenadas" }
+        {
+          "title": "Prospecto oficial de Tirzedral 5 — Laboratorios Catedral",
+          "url": "https://laboratorioscatedral.com.py/wp-content/uploads/Prospecto-Tirzedral.pdf"
+        },
+        {
+          "title": "Tirzedral 5 mg, caixa com 4 seringas — Farmacia Catedral",
+          "url": "https://www.farmaciacatedral.com.py/producto/19324/tirzedral-5mg-cj-x-4-jerprellenadas"
+        }
       ],
       "priceCents": 39390,
       "image": "./images/tirzedral.jpg",
-      "alt": "Caixa Tirzedral 5 mg do Laboratório Catedral"
+      "alt": "Caixa Tirzedral 5 mg do Laboratório Catedral",
+      "explanation": ""
     },
     {
       "id": "slimex",
@@ -90,13 +300,23 @@
       "packageConfidence": "retail-only",
       "unitContent": "15 mg/0,5 mL é informado por varejistas; não foi confirmado oficialmente por frasco.",
       "packageSources": [
-        { "title": "Registro sanitário de Slimex 15 — DINAVISA/DNVS", "url": "https://dnvspy.mspbs.gov.py/dnvspy/page-qr-rs.php?param=WCt3VVVkR3k1QndwNkQ4c3hGcGQvQT09OjpFaeJwLXyQCRhsgih3np8+" },
-        { "title": "Slimex 15 mg x 4 viales — Farma10 (listagem comercial)", "url": "https://farma10.com.py/producto/102816" },
-        { "title": "Slimex 15 mg/0,5 mL, 4 frascos — Compras Paraguai (listagem comercial)", "url": "https://www.comprasparaguai.com.br/slimex-tirzepatida-15-mg05ml-4-frascos-com-solucao-injetavel__5337336/" }
+        {
+          "title": "Registro sanitário de Slimex 15 — DINAVISA/DNVS",
+          "url": "https://dnvspy.mspbs.gov.py/dnvspy/page-qr-rs.php?param=WCt3VVVkR3k1QndwNkQ4c3hGcGQvQT09OjpFaeJwLXyQCRhsgih3np8+"
+        },
+        {
+          "title": "Slimex 15 mg x 4 viales — Farma10 (listagem comercial)",
+          "url": "https://farma10.com.py/producto/102816"
+        },
+        {
+          "title": "Slimex 15 mg/0,5 mL, 4 frascos — Compras Paraguai (listagem comercial)",
+          "url": "https://www.comprasparaguai.com.br/slimex-tirzepatida-15-mg05ml-4-frascos-com-solucao-injetavel__5337336/"
+        }
       ],
       "priceCents": 63790,
       "image": "./images/slimex.jpg",
-      "alt": "Embalagem Slimex 15 mg"
+      "alt": "Embalagem Slimex 15 mg",
+      "explanation": ""
     },
     {
       "id": "tg15",
@@ -108,13 +328,23 @@
       "packageConfidence": "commercial-corroboration",
       "unitContent": "O conteúdo de 15 mg/0,5 mL por frasco é informado comercialmente, sem confirmação oficial localizada.",
       "packageSources": [
-        { "title": "Nova apresentação de T.G. — ABC Color, seção empresarial", "url": "https://www.abc.com.py/empresariales/2025/11/21/indufar-amplia-la-gama-de-tg-tirzepatida-con-una-nueva-presentacion-monodosis-mas-practica-y-segura/" },
-        { "title": "T.G. 15, caixa com 4 viales — Farma del Este (listagem comercial)", "url": "https://farmadeleste.com/producto/t-g-15-tirzepatida-15mg-05ml-cj-4-vial/" },
-        { "title": "Vademécum Indufar", "url": "https://www.indufar.com.py/productos/detalle/4" }
+        {
+          "title": "Nova apresentação de T.G. — ABC Color, seção empresarial",
+          "url": "https://www.abc.com.py/empresariales/2025/11/21/indufar-amplia-la-gama-de-tg-tirzepatida-con-una-nueva-presentacion-monodosis-mas-practica-y-segura/"
+        },
+        {
+          "title": "T.G. 15, caixa com 4 viales — Farma del Este (listagem comercial)",
+          "url": "https://farmadeleste.com/producto/t-g-15-tirzepatida-15mg-05ml-cj-4-vial/"
+        },
+        {
+          "title": "Vademécum Indufar",
+          "url": "https://www.indufar.com.py/productos/detalle/4"
+        }
       ],
       "priceCents": 70890,
       "image": "./images/tg15.jpg",
-      "alt": "Embalagem T.G. 15 mg da Indufar"
+      "alt": "Embalagem T.G. 15 mg da Indufar",
+      "explanation": ""
     },
     {
       "id": "ghk-cu-thera",
@@ -134,7 +364,10 @@
       "researchUseDisclosure": "Uso exclusivo para pesquisa; não destinado a consumo ou uso humano.",
       "explanation": "GHK-Cu é um complexo de cobre associado ao tripeptídeo GHK (glicil-L-histidil-L-lisina). A literatura consultada reúne pesquisas laboratoriais, pré-clínicas e tópicas; ela não verifica a qualidade deste frasco nem permite inferir segurança para este produto ou para uso injetável.",
       "sources": [
-        { "title": "Revisão sobre GHK-Cu — Pickart & Margolina, 2018", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6073405/" }
+        {
+          "title": "Revisão sobre GHK-Cu — Pickart & Margolina, 2018",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6073405/"
+        }
       ],
       "packageSources": []
     }

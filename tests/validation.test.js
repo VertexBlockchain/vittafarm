@@ -103,11 +103,14 @@ test('exige telefone válido para contato do pedido e separa consentimento promo
   assert.equal(validateCheckout({ ...withConsent, phone: '' }, products, 3000).ok, false);
 });
 
-test('Pix parcelado cobra 35% do produto mais o frete e mantém 65% do produto como saldo', () => {
+test('Pix parcelado cobra 35% do total com acréscimo e mantém o saldo', () => {
   const checkout = { ...validCheckout(), paymentMethod: 'parcelado' };
   const result = validateCheckout(checkout, products, 3000);
-  const expectedDeposit = Math.floor((products.lipoless.priceCents * 35 + 50) / 100) + 3000;
+  const baseTotalCents = products.lipoless.priceCents + 3000;
+  const expectedTotal = Math.floor((baseTotalCents * 110 + 50) / 100);
+  const expectedDeposit = Math.floor((expectedTotal * 35 + 50) / 100);
   assert.equal(result.ok, true);
+  assert.equal(result.value.totalCents, expectedTotal);
   assert.equal(result.value.depositCents, expectedDeposit);
   assert.equal(result.value.balanceCents, result.value.totalCents - expectedDeposit);
   assert.equal(result.value.depositCents + result.value.balanceCents, result.value.totalCents);
