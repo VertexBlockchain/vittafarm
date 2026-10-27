@@ -255,9 +255,7 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 .dialog-label { margin-bottom: 7px; color: var(--green); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
 .site-dialog h2 { margin-bottom: 12px; font-size: clamp(27px, 6vw, 36px); font-weight: 700; letter-spacing: -.06em; line-height: 1.08; }
 .dialog-body { color: #586d64; font-size: 14px; line-height: 1.7; white-space: pre-line; }
-.dialog-caveat, .dialog-privacy { padding: 12px 14px; border: 1px solid #dce6dd; border-radius: 11px; color: #61746b; background: #f5f8f2; font-size: 11px; line-height: 1.6; }
-.dialog-warning { margin: 0 0 14px; padding: 12px 14px; border: 1px solid #e7d8b5; border-radius: 11px; color: #786238; background: #fbf7ed; font-size: 11px; line-height: 1.6; }
-.dialog-caveat { margin: 18px 0 0; }
+.dialog-privacy { padding: 12px 14px; border: 1px solid #dce6dd; border-radius: 11px; color: #61746b; background: #f5f8f2; font-size: 11px; line-height: 1.6; }
 .dialog-sources { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 17px; }
 .dialog-sources a { color: var(--green-dark); font-size: 11px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 #checkout-form { display: grid; gap: 13px; }

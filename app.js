@@ -18,7 +18,6 @@ const checkoutFormView = document.querySelector('#checkout-form-view');
 const checkoutProductName = document.querySelector('#checkout-product-name');
 const checkoutProductSummary = document.querySelector('#checkout-product-summary');
 const paymentSummary = document.querySelector('#payment-summary');
-const checkoutPackageWarning = document.querySelector('#checkout-package-warning');
 const checkoutError = document.querySelector('#checkout-error');
 const checkoutSubmit = document.querySelector('#checkout-submit');
 const checkoutResult = document.querySelector('#pix-result');
@@ -142,12 +141,7 @@ function appendSource(source) {
 function openProductInfo(product) {
   infoTitle.textContent = product.name;
   infoPackage.textContent = `${product.dose} · Conteúdo: ${product.packageCount || 'quantidade não confirmada'}`;
-  const details = [
-    product.explanation || catalog.principle.explanation,
-    product.researchUseDisclosure,
-    product.packageNote,
-    product.unitContent ? `Conteúdo por unidade: ${product.unitContent}` : '',
-  ].filter(Boolean);
+  const details = [product.explanation || catalog.principle.explanation].filter(Boolean);
   infoBody.textContent = details.join('\n\n') || 'Não há informações verificadas disponíveis neste momento.';
   infoSources.replaceChildren();
   (product.sources || catalog.principle.sources || []).forEach(appendSource);
@@ -202,8 +196,6 @@ function openCheckout(product) {
   const parceladoTotalCents = Math.floor((totalCents * 110 + 50) / 100);
   checkoutProductSummary.textContent = `${packageText}. Produto: ${formatPrice(product.priceCents)} ${priceUnit}. Frete fixo: ${formatPrice(SHIPPING_CENTS)}. Total à vista: ${total}. Total parcelado (+10%): ${formatPrice(parceladoTotalCents)}.`;
   updatePaymentSummary();
-  checkoutPackageWarning.textContent = product.packageNote || '';
-  checkoutPackageWarning.hidden = product.packageConfidence === 'official';
   researchUseDeclaration.hidden = !product.researchUseOnly;
   checkoutTermsDetails.open = false;
 
