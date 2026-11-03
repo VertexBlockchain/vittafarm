@@ -231,16 +231,12 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 
-.product-package { margin: -9px 0 16px; color: #526d63; font-size: 11px; font-weight: 700; }
-.product-package-unverified { color: #80673c; }
-.product-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 13px; }
-.product-cta, .product-info-button { width: 100%; min-height: 40px; cursor: pointer; }
+.product-actions { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 13px; }
+.product-cta { width: 100%; min-height: 40px; cursor: pointer; }
 .product-cta { color: #fff; background: var(--green); border-color: var(--green); }
 .product-cta:hover { color: #fff; background: var(--green-dark); border-color: var(--green-dark); }
 .product-cta:disabled { color: #66746d; background: #e9ece7; border-color: #d6ddd6; cursor: not-allowed; opacity: .9; }
-.product-info-button { display: inline-flex; align-items: center; justify-content: center; padding: 0 10px; border: 1px solid #d2dfd5; border-radius: 999px; color: var(--green-dark); background: #fffefa; font-size: 10px; font-weight: 700; }
-.product-info-button:hover { background: var(--mint-soft); border-color: #b8d5c8; }
-.product-cta:focus-visible, .product-info-button:focus-visible, .dialog-close:focus-visible, .checkout-submit:focus-visible, #copy-pix:focus-visible { outline: 3px solid #8bcbb5; outline-offset: 3px; }
+.product-cta:focus-visible, .dialog-close:focus-visible, .checkout-submit:focus-visible, #copy-pix:focus-visible { outline: 3px solid #8bcbb5; outline-offset: 3px; }
 
 .site-dialog { width: min(540px, calc(100vw - 28px)); max-width: none; max-height: min(88dvh, 760px); overflow-y: auto; padding: 0; border: 1px solid #d5e1d7; border-radius: 22px; color: var(--ink); background: var(--white); box-shadow: 0 28px 90px rgba(12, 40, 33, .28); }
 .site-dialog::backdrop { background: rgba(11, 37, 32, .56); backdrop-filter: blur(3px); }
@@ -338,7 +334,7 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 
 @media (max-width: 640px) {
   .product-actions { gap: 7px; }
-  .product-cta, .product-info-button { min-height: 39px; font-size: 9px; }
+  .product-cta { min-height: 39px; font-size: 9px; }
   .dialog-content { padding: 21px 18px; }
   .dialog-topline { margin-bottom: 18px; }
   .site-dialog.pix-result-open .dialog-content { width: 100%; padding-inline: max(12px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-right)); }

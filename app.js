@@ -15,8 +15,8 @@ const infoBody = document.querySelector('#product-info-body');
 const infoSources = document.querySelector('#product-info-sources');
 const checkoutForm = document.querySelector('#checkout-form');
 const checkoutFormView = document.querySelector('#checkout-form-view');
-const checkoutProductName = document.querySelector('#checkout-product-name');
-const checkoutProductSummary = document.querySelector('#checkout-product-summary');
+  const checkoutProductName = document.querySelector('#checkout-product-name');
+  const checkoutProductSummary = document.querySelector('#checkout-product-summary');
 const paymentSummary = document.querySelector('#payment-summary');
 const checkoutError = document.querySelector('#checkout-error');
 const checkoutSubmit = document.querySelector('#checkout-submit');
@@ -139,7 +139,6 @@ function appendSource(source) {
 
 function openProductInfo(product) {
   infoTitle.textContent = product.name;
-  infoPackage.textContent = `${product.dose} · Conteúdo: ${product.packageCount || 'quantidade não confirmada'}`;
   const details = [product.explanation || catalog.principle.explanation].filter(Boolean);
   infoBody.textContent = details.join('\n\n') || 'Não há informações verificadas disponíveis neste momento.';
   infoSources.replaceChildren();
@@ -188,12 +187,11 @@ function openCheckout(product) {
   orderIdElement.textContent = '';
   transactionId.textContent = '';
   checkoutProductName.textContent = `${product.name} · ${product.dose}`;
-  const packageText = product.packageCount ? `Conteúdo da caixa: ${product.packageCount}` : 'Conteúdo da caixa a confirmar';
   const priceUnit = product.priceUnit ? `por ${product.priceUnit}` : 'por caixa';
   const totalCents = product.priceCents + SHIPPING_CENTS;
   const total = formatPrice(totalCents);
   const parceladoTotalCents = Math.floor((totalCents * 110 + 50) / 100);
-  checkoutProductSummary.textContent = `${packageText}. Produto: ${formatPrice(product.priceCents)} ${priceUnit}. Frete fixo: ${formatPrice(SHIPPING_CENTS)}. Total à vista: ${total}. Total parcelado (+10%): ${formatPrice(parceladoTotalCents)}.`;
+  checkoutProductSummary.textContent = `Produto: ${formatPrice(product.priceCents)} ${priceUnit}. Frete fixo: ${formatPrice(SHIPPING_CENTS)}. Total à vista: ${total}. Total parcelado (+10%): ${formatPrice(parceladoTotalCents)}.`;
   updatePaymentSummary();
   checkoutTermsDetails.open = false;
 
@@ -240,10 +238,6 @@ function addProductCard(product, index) {
   const dose = document.createElement('p');
   dose.className = 'product-dose';
   dose.textContent = product.dose;
-  const packageCount = document.createElement('p');
-  packageCount.className = 'product-package';
-  packageCount.textContent = product.packageCount ? `Conteúdo: ${product.packageCount}` : 'Conteúdo da caixa: a confirmar';
-  if (product.packageConfidence !== 'official') packageCount.classList.add('product-package-unverified');
   const priceBlock = document.createElement('div');
   priceBlock.className = 'product-price-block';
   const priceInfo = document.createElement('div');
@@ -271,15 +265,9 @@ function addProductCard(product, index) {
   buy.title = canBuy ? '' : comingSoon ? 'Produto ainda não disponível para compra.' : 'Preço ainda não confirmado; compra desabilitada.';
   buy.setAttribute('aria-label', canBuy ? `Comprar ${product.name}, ${product.dose}` : comingSoon ? `${product.name}, em breve; compra desabilitada` : `${product.name}, preço a confirmar; compra desabilitada`);
   if (canBuy) buy.addEventListener('click', () => openCheckout(product));
-  const more = document.createElement('button');
-  more.className = 'product-info-button';
-  more.type = 'button';
-  more.textContent = 'Saiba mais';
-  more.setAttribute('aria-label', `Ler sobre ${product.name}`);
-  more.addEventListener('click', () => openProductInfo(product));
-  actions.append(buy, more);
+  actions.append(buy);
 
-  detail.append(type, title, dose, packageCount, priceBlock, actions);
+  detail.append(type, title, dose, priceBlock, actions);
   card.append(visual, detail);
   track.append(card);
 }
