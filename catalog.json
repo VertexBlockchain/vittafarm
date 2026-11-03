@@ -213,10 +213,10 @@
       "name": "Lipoless",
       "manufacturer": "Eticos",
       "dose": "15 mg",
-      "packageCount": "Caixa com 4 seringas pré-preenchidas de 0,5 mL",
-      "packageNote": "A apresentação oficial Lipoless 15 é uma caixa com quatro seringas pré-preenchidas de 0,5 mL. Não confundir com Lipoless MD, que é outra apresentação em frasco multidose.",
-      "packageConfidence": "official",
-      "unitContent": "Cada seringa: 15 mg em 0,5 mL.",
+      "packageCount": "Caixa com 4 frascos-viais de 0,5 mL",
+      "packageNote": "A imagem enviada mostra uma caixa com quatro frascos-viais de 0,5 mL. Não confundir com Lipoless MD, que é outra apresentação em frasco multidose.",
+      "packageConfidence": "user-image",
+      "unitContent": "Cada vial: 15 mg em 0,5 mL conforme a embalagem da imagem enviada.",
       "packageSources": [
         {
           "title": "Lipoless® 15 — Eticos",
@@ -228,7 +228,7 @@
         }
       ],
       "priceCents": 62990,
-      "image": "./images/lipoless.png",
+      "image": "./images/new/lipoless-15-user.jpg",
       "alt": "Embalagem Lipoless 15 mg do Laboratório Eticos",
       "explanation": ""
     },
@@ -237,10 +237,10 @@
       "name": "Tirzec",
       "manufacturer": "Quimfa",
       "dose": "15 mg",
-      "packageCount": "1 frasco-ampola de 2 mL + 4 seringas estéreis com agulha",
-      "packageNote": "A Quimfa informa um frasco de 2 mL e quatro seringas estéreis com agulha. As quatro unidades adicionais são seringas, não frascos. A fonte oficial consultada não esclarece se os 15 mg se referem ao total do frasco ou à concentração; não inferir a massa por unidade.",
-      "packageConfidence": "official",
-      "unitContent": "Volume declarado por frasco: 2 mL; massa de tirzepatida por frasco não confirmada na página do fabricante.",
+      "packageCount": "Caixa com 4 frascos-viais de 0,5 mL",
+      "packageNote": "A imagem enviada mostra quatro frascos-viais de 0,5 mL. A apresentação anterior com frasco de 2 mL e seringas não corresponde à embalagem enviada pelo usuário.",
+      "packageConfidence": "user-image",
+      "unitContent": "Cada vial: 0,5 mL conforme a embalagem da imagem enviada.",
       "packageSources": [
         {
           "title": "TIRZEC 15 — Quimfa",
@@ -252,7 +252,7 @@
         }
       ],
       "priceCents": 62990,
-      "image": "./images/tirzec.png",
+      "image": "./images/new/tirzec-15-user.jpg",
       "alt": "Embalagem Tirzec 15 mg da Quimfa",
       "explanation": ""
     },
