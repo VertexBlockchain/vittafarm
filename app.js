@@ -190,8 +190,7 @@ function openCheckout(product) {
   const priceUnit = product.priceUnit ? `por ${product.priceUnit}` : 'por caixa';
   const totalCents = product.priceCents + SHIPPING_CENTS;
   const total = formatPrice(totalCents);
-  const parceladoTotalCents = Math.floor((totalCents * 110 + 50) / 100);
-  checkoutProductSummary.textContent = `Produto: ${formatPrice(product.priceCents)} ${priceUnit}. Frete fixo: ${formatPrice(SHIPPING_CENTS)}. Total à vista: ${total}. Total parcelado (+10%): ${formatPrice(parceladoTotalCents)}.`;
+  checkoutProductSummary.textContent = `Produto: ${formatPrice(product.priceCents)} ${priceUnit}. Frete fixo: ${formatPrice(SHIPPING_CENTS)}. Total à vista: ${total}.`;
   updatePaymentSummary();
   checkoutTermsDetails.open = false;
 
@@ -302,7 +301,7 @@ function detectDevice() {
 function statusLabel(value) {
   const status = String(value || 'PENDING').toUpperCase();
   if (status === 'PAID') return 'Pagamento confirmado';
-  if (status === 'PARTIALLY_PAID') return 'Entrada paga — saldo pendente';
+  if (status === 'PARTIALLY_PAID') return 'Pagamento em conferência';
   if (status === 'PENDING') return 'Pendente';
   if (status === 'UNKNOWN') return 'Em conferência';
   if (status === 'CREATING') return 'Gerando cobrança';
@@ -310,21 +309,12 @@ function statusLabel(value) {
 }
 
 function selectedPaymentMethod() {
-  return checkoutForm.querySelector('[name="paymentMethod"]:checked')?.value || 'avista';
+  return 'avista';
 }
 
 function updatePaymentSummary() {
   if (!selectedProduct || !paymentSummary) return;
   const baseTotalCents = selectedProduct.priceCents + SHIPPING_CENTS;
-  if (selectedPaymentMethod() === 'parcelado') {
-    const parceladoTotalCents = Math.floor((baseTotalCents * 110 + 50) / 100);
-    const depositCents = Math.floor((parceladoTotalCents * 35 + 50) / 100);
-    const balanceCents = parceladoTotalCents - depositCents;
-    const firstInstallmentCents = Math.ceil(balanceCents / 2);
-    const secondInstallmentCents = balanceCents - firstInstallmentCents;
-    paymentSummary.textContent = `Total parcelado: ${formatPrice(parceladoTotalCents)} (produto + frete, com acréscimo de 10%) · Pix agora: 35% (${formatPrice(depositCents)}) · Saldo em 2 parcelas provisórias: ${formatPrice(firstInstallmentCents)} + ${formatPrice(secondInstallmentCents)}.`;
-    return;
-  }
   paymentSummary.textContent = `Total no Pix: ${formatPrice(baseTotalCents)} (produto + frete fixo de R$ 30,00).`;
 }
 
@@ -495,19 +485,9 @@ async function submitCheckout(event) {
     currentOrderId = result.orderId;
     const value = Number(result.value);
     const chargedAmount = Number.isFinite(value) ? money.format(value) : formatPrice(selectedProduct.priceCents + SHIPPING_CENTS);
-    const fullTotal = Number.isFinite(Number(result.totalValue))
-      ? money.format(Number(result.totalValue))
-      : formatPrice(selectedProduct.priceCents + SHIPPING_CENTS);
-    if (result.paymentMethod === 'parcelado') {
-      const balance = Number.isFinite(Number(result.balanceValue)) ? money.format(Number(result.balanceValue)) : 'o saldo restante';
-      pixStatusMessage.textContent = `Pedido registrado. O Pix gerado agora cobra 35% do total parcelado (produto + frete com acréscimo de 10%): ${chargedAmount}. O saldo restante não está nesta cobrança. Total parcelado: ${fullTotal}. Escaneie o QR Code ou use o código PIX para pagar a entrada.`;
-      paymentFollowupNote.textContent = `O saldo restante (${balance}) será enviado em duas cobranças provisórias por e-mail e WhatsApp cadastrado. O frete de R$ 30,00 já está incluído na base antes do acréscimo.`;
-      paymentFollowupNote.hidden = false;
-    } else {
-      pixStatusMessage.textContent = `Pedido registrado. Pix à vista de ${chargedAmount} criado (inclui frete fixo de R$ 30,00). Status atual: ${statusLabel(result.status)}. Escaneie o QR Code ou use o código PIX no aplicativo do seu banco.`;
-      paymentFollowupNote.hidden = true;
-      paymentFollowupNote.textContent = '';
-    }
+    pixStatusMessage.textContent = `Pedido registrado. Pix à vista de ${chargedAmount} criado (inclui frete fixo de R$ 30,00). Status atual: ${statusLabel(result.status)}. Escaneie o QR Code ou use o código PIX no aplicativo do seu banco.`;
+    paymentFollowupNote.hidden = true;
+    paymentFollowupNote.textContent = '';
     orderIdElement.textContent = result.orderId;
     transactionId.textContent = result.transactionId;
     pixCode.value = result.pix;

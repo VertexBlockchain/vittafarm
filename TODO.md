@@ -30,4 +30,5 @@
 - [x] Quantidades revisadas — Corrigir no catálogo as apresentações confirmadas: frascos com volume, caixas de comprimidos, seringas pré-preenchidas e frascos-viais, sem contar seringas como frascos. Deca/nandrolona não foi incluída porque não existe como item separado no catálogo atual; ReduFast e iPeptide permanecem com apresentação a confirmar.
 - [x] Interface sem quantidades e sem Saiba mais — Remover “Conteúdo da caixa” dos cards e do checkout, além do botão “Saiba mais” e das instruções relacionadas na página pública.
 - [x] Categorias removidas da vitrine — Ocultar de todos os cards as mensagens de uso de pesquisa, apresentação a conferir, registro a confirmar e demais categorias/avisos equivalentes.
-- [x] Banner sem fechamento do mês — Remover a mensagem promocional de fechamento do mês e manter o PIX parcelado como forma de pagamento disponível.
+- [x] Banner sem fechamento do mês — Remover a mensagem promocional de fechamento do mês; a oferta exibida posteriormente foi substituída por PIX somente à vista.
+- [x] PIX somente à vista na interface — Remover textos, cálculos e opção de compra parcelada do banner e do checkout; manter o pedido com PIX à vista.
