@@ -29,3 +29,4 @@
 - [x] BPC-157 atualizado — Substituir a imagem do BPC-157 pela foto MEDplus enviada pelo usuário, atualizar a apresentação para 5 mg/1 frasco e não exibir declaração específica de pesquisa no checkout.
 - [x] Quantidades revisadas — Corrigir no catálogo as apresentações confirmadas: frascos com volume, caixas de comprimidos, seringas pré-preenchidas e frascos-viais, sem contar seringas como frascos. Deca/nandrolona não foi incluída porque não existe como item separado no catálogo atual; ReduFast e iPeptide permanecem com apresentação a confirmar.
 - [x] Interface sem quantidades e sem Saiba mais — Remover “Conteúdo da caixa” dos cards e do checkout, além do botão “Saiba mais” e das instruções relacionadas na página pública.
+- [x] Categorias removidas da vitrine — Ocultar de todos os cards as mensagens de uso de pesquisa, apresentação a conferir, registro a confirmar e demais categorias/avisos equivalentes.

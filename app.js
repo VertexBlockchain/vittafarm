@@ -230,9 +230,6 @@ function addProductCard(product, index) {
 
   const detail = document.createElement('div');
   detail.className = 'product-detail';
-  const type = document.createElement('p');
-  type.className = 'product-type';
-  type.textContent = product.category || `${catalog.principle.name} · Seleção Vitta`;
   const title = document.createElement('h3');
   title.textContent = product.name;
   const dose = document.createElement('p');
@@ -267,7 +264,7 @@ function addProductCard(product, index) {
   if (canBuy) buy.addEventListener('click', () => openCheckout(product));
   actions.append(buy);
 
-  detail.append(type, title, dose, priceBlock, actions);
+  detail.append(title, dose, priceBlock, actions);
   card.append(visual, detail);
   track.append(card);
 }
