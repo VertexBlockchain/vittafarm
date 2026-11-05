@@ -32,5 +32,5 @@
 - [x] Categorias removidas da vitrine — Ocultar de todos os cards as mensagens de uso de pesquisa, apresentação a conferir, registro a confirmar e demais categorias/avisos equivalentes.
 - [x] Banner sem fechamento do mês — Remover a mensagem promocional de fechamento do mês; a oferta exibida posteriormente foi substituída por PIX somente à vista.
 - [x] PIX somente à vista na interface — Remover textos, cálculos e opção de compra parcelada do banner e do checkout; manter o pedido com PIX à vista.
-- [x] Preço do Tirzec — Restaurar o preço original de R$ 629,90, sem destaque visual adicional.
+- [x] Preço do Tirzec — Definir o preço atual em R$ 422,00, sem destaque visual adicional.
 - [x] Quantidade por pedido — Permitir de 1 a 20 unidades em todos os produtos, multiplicar o preço do produto e cobrar apenas um frete fixo de R$ 30,00 por pedido.
