@@ -33,3 +33,4 @@
 - [x] Banner sem fechamento do mês — Remover a mensagem promocional de fechamento do mês; a oferta exibida posteriormente foi substituída por PIX somente à vista.
 - [x] PIX somente à vista na interface — Remover textos, cálculos e opção de compra parcelada do banner e do checkout; manter o pedido com PIX à vista.
 - [x] Preço do Tirzec — Atualizar somente o preço para R$ 422,00, sem destaque visual adicional.
+- [x] Quantidade por pedido — Permitir de 1 a 20 unidades em todos os produtos, multiplicar o preço do produto e cobrar apenas um frete fixo de R$ 30,00 por pedido.

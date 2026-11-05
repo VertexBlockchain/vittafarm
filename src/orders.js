@@ -111,13 +111,13 @@ async function processCheckout({
   try {
     await pool.execute(
       `INSERT INTO orders (
-        id, checkout_request_id, customer_id, webhook_token_hash, product_id, product_name, product_dose, product_packaging,
+        id, checkout_request_id, customer_id, webhook_token_hash, product_id, product_name, product_dose, product_packaging, quantity,
         unit_price_cents, shipping_cents, total_cents, payer_name,
         address_cep, address_street, address_number, address_complement,
         address_neighborhood, address_city, address_state,
         delivery_consent_at, pixgate_consent_at, research_consent_at, payment_status, payment_method
       ) VALUES (
-        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
         (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'), (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
         CASE WHEN ? THEN (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') ELSE NULL END, 'CREATING', ?
       )`,
@@ -130,6 +130,7 @@ async function processCheckout({
         order.product.name,
         order.product.dose,
         order.product.packageCount || 'Conteúdo não informado',
+        order.quantity,
         order.product.priceCents,
         order.shippingCents,
         order.totalCents,
@@ -189,6 +190,7 @@ async function processCheckout({
         device: order.device,
         amountCents: payment.amountCents,
         shippingCents: order.shippingCents,
+        quantity: order.quantity,
         paymentKind: payment.kind,
         postbackUrl: payment.callbackUrl,
       });

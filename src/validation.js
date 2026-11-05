@@ -2,7 +2,7 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3
 const ADDRESS_KEYS = new Set(['cep', 'street', 'number', 'complement', 'neighborhood', 'city', 'state']);
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CHECKOUT_KEYS = new Set([
-  'productId', 'paymentMethod', 'checkoutRequestId', 'nome', 'cpf', 'email', 'phone', 'whatsappMarketingConsent', 'password', 'passwordConfirmation', 'device', 'termsConsent', 'address',
+  'productId', 'quantity', 'paymentMethod', 'checkoutRequestId', 'nome', 'cpf', 'email', 'phone', 'whatsappMarketingConsent', 'password', 'passwordConfirmation', 'device', 'termsConsent', 'address',
 ]);
 
 function hasRepeatedDigits(value) {
@@ -75,6 +75,10 @@ function validateCheckout(body, products, shippingCents = 3000) {
   if (!Number.isSafeInteger(product.priceCents) || product.priceCents <= 0) {
     return invalid('O preço deste produto ainda não foi confirmado.');
   }
+  const quantity = body.quantity === undefined ? 1 : body.quantity;
+  if (!Number.isSafeInteger(quantity) || quantity < 1 || quantity > 20) {
+    return invalid('A quantidade deve ser um número inteiro entre 1 e 20.');
+  }
   if (body.paymentMethod !== 'avista' && body.paymentMethod !== 'parcelado') {
     return invalid('Selecione uma forma de pagamento válida.');
   }
@@ -130,7 +134,8 @@ function validateCheckout(body, products, shippingCents = 3000) {
   if (!city || city.length < 2) return invalid('Informe a cidade.');
   if (!state || !/^[A-Za-z]{2}$/.test(state)) return invalid('Informe a UF com duas letras.');
 
-  const baseTotalCents = product.priceCents + shippingCents;
+  const productTotalCents = product.priceCents * quantity;
+  const baseTotalCents = productTotalCents + shippingCents;
   if (!Number.isSafeInteger(baseTotalCents) || baseTotalCents <= 0) return invalid('O valor do pedido é inválido.');
   const totalCents = body.paymentMethod === 'parcelado'
     ? Math.floor((baseTotalCents * 110 + 50) / 100)
@@ -143,8 +148,9 @@ function validateCheckout(body, products, shippingCents = 3000) {
   return {
     ok: true,
     value: {
-      checkoutRequestId: body.checkoutRequestId.toLowerCase(),
-      product,
+          checkoutRequestId: body.checkoutRequestId.toLowerCase(),
+          product,
+          quantity,
       paymentMethod: body.paymentMethod,
       nome: name,
       cpf,

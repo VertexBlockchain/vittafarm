@@ -190,6 +190,10 @@
           <h2 id="checkout-title">Gerar cobrança PIX</h2>
           <p class="dialog-body" id="checkout-product-summary"></p>
           <form id="checkout-form" autocomplete="off" novalidate>
+            <label class="form-field quantity-field" for="product-quantity">Quantidade
+              <input id="product-quantity" name="quantity" type="number" inputmode="numeric" min="1" max="20" step="1" value="1" required />
+              <span class="field-hint">O frete fixo de R$ 30,00 é cobrado uma única vez por pedido.</span>
+            </label>
             <label class="form-field" for="customer-name">Nome completo
               <input id="customer-name" name="nome" type="text" autocomplete="name" maxlength="120" required />
             </label>

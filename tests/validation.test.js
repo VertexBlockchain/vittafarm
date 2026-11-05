@@ -48,6 +48,15 @@ test('normaliza endereço e calcula valor somente a partir do catálogo', () => 
   assert.equal(result.value.address.complement, 'Apto 2');
 });
 
+test('multiplica o produto pela quantidade e cobra um único frete', () => {
+  const result = validateCheckout({ ...validCheckout(), quantity: 2 }, products, 3000);
+  assert.equal(result.ok, true);
+  assert.equal(result.value.quantity, 2);
+  assert.equal(result.value.totalCents, (products.lipoless.priceCents * 2) + 3000);
+  assert.equal(validateCheckout({ ...validCheckout(), quantity: 0 }, products, 3000).ok, false);
+  assert.equal(validateCheckout({ ...validCheckout(), quantity: 21 }, products, 3000).ok, false);
+});
+
 test('rejeita endereço incompleto, aceite único ausente e preço enviado pelo navegador', () => {
   const missingAddress = validCheckout();
   missingAddress.address.cep = '123';

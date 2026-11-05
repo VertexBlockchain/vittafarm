@@ -15,8 +15,9 @@ const infoBody = document.querySelector('#product-info-body');
 const infoSources = document.querySelector('#product-info-sources');
 const checkoutForm = document.querySelector('#checkout-form');
 const checkoutFormView = document.querySelector('#checkout-form-view');
-  const checkoutProductName = document.querySelector('#checkout-product-name');
-  const checkoutProductSummary = document.querySelector('#checkout-product-summary');
+const checkoutProductName = document.querySelector('#checkout-product-name');
+const checkoutProductSummary = document.querySelector('#checkout-product-summary');
+const quantityInput = document.querySelector('#product-quantity');
 const paymentSummary = document.querySelector('#payment-summary');
 const checkoutError = document.querySelector('#checkout-error');
 const checkoutSubmit = document.querySelector('#checkout-submit');
@@ -168,6 +169,7 @@ function openCheckout(product) {
   lastViaCepValues = { street: '', neighborhood: '', city: '', state: '' };
   checkoutForm.reset();
   checkoutForm.querySelector('[name="paymentMethod"][value="avista"]').checked = true;
+  quantityInput.value = '1';
   checkoutError.hidden = true;
   checkoutError.textContent = '';
   checkoutFormView.hidden = false;
@@ -187,10 +189,6 @@ function openCheckout(product) {
   orderIdElement.textContent = '';
   transactionId.textContent = '';
   checkoutProductName.textContent = `${product.name} · ${product.dose}`;
-  const priceUnit = product.priceUnit ? `por ${product.priceUnit}` : 'por caixa';
-  const totalCents = product.priceCents + SHIPPING_CENTS;
-  const total = formatPrice(totalCents);
-  checkoutProductSummary.textContent = `Produto: ${formatPrice(product.priceCents)} ${priceUnit}. Frete fixo: ${formatPrice(SHIPPING_CENTS)}. Total à vista: ${total}.`;
   updatePaymentSummary();
   checkoutTermsDetails.open = false;
 
@@ -312,9 +310,17 @@ function selectedPaymentMethod() {
   return 'avista';
 }
 
+function getSelectedQuantity() {
+  const quantity = Number.parseInt(quantityInput?.value || '1', 10);
+  return Number.isInteger(quantity) && quantity >= 1 && quantity <= 20 ? quantity : 1;
+}
+
 function updatePaymentSummary() {
   if (!selectedProduct || !paymentSummary) return;
-  const baseTotalCents = selectedProduct.priceCents + SHIPPING_CENTS;
+  const quantity = getSelectedQuantity();
+  const baseTotalCents = (selectedProduct.priceCents * quantity) + SHIPPING_CENTS;
+  const priceUnit = selectedProduct.priceUnit ? `por ${selectedProduct.priceUnit}` : 'por caixa';
+  checkoutProductSummary.textContent = `Produto: ${formatPrice(selectedProduct.priceCents)} ${priceUnit} × ${quantity}. Frete fixo único: ${formatPrice(SHIPPING_CENTS)}. Total à vista: ${formatPrice(baseTotalCents)}.`;
   paymentSummary.textContent = `Total no Pix: ${formatPrice(baseTotalCents)} (produto + frete fixo de R$ 30,00).`;
 }
 
@@ -391,6 +397,12 @@ async function submitCheckout(event) {
   checkoutError.textContent = '';
   if (!checkoutForm.reportValidity()) return;
   if (!selectedProduct) return;
+  const quantity = Number.parseInt(quantityInput.value, 10);
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > 20) {
+    setCheckoutError('Informe uma quantidade entre 1 e 20.');
+    quantityInput.focus();
+    return;
+  }
 
   const nome = nameInput.value.trim().replace(/\s+/g, ' ');
   const cpf = cpfInput.value.replace(/\D/g, '');
@@ -449,6 +461,7 @@ async function submitCheckout(event) {
       cache: 'no-store',
       body: JSON.stringify({
         productId: selectedProduct.id,
+        quantity,
         paymentMethod: selectedPaymentMethod(),
         checkoutRequestId,
         nome,
@@ -484,7 +497,7 @@ async function submitCheckout(event) {
     checkoutDialog.classList.add('pix-result-open');
     currentOrderId = result.orderId;
     const value = Number(result.value);
-    const chargedAmount = Number.isFinite(value) ? money.format(value) : formatPrice(selectedProduct.priceCents + SHIPPING_CENTS);
+    const chargedAmount = Number.isFinite(value) ? money.format(value) : formatPrice((selectedProduct.priceCents * quantity) + SHIPPING_CENTS);
     pixStatusMessage.textContent = `Pedido registrado. Pix à vista de ${chargedAmount} criado (inclui frete fixo de R$ 30,00). Status atual: ${statusLabel(result.status)}. Escaneie o QR Code ou use o código PIX no aplicativo do seu banco.`;
     paymentFollowupNote.hidden = true;
     paymentFollowupNote.textContent = '';
@@ -582,6 +595,7 @@ async function loadCatalog() {
     window.addEventListener('resize', updateCarousel);
     checkoutForm.addEventListener('submit', submitCheckout);
     checkoutForm.querySelectorAll('[name="paymentMethod"]').forEach((input) => input.addEventListener('change', updatePaymentSummary));
+    quantityInput.addEventListener('input', updatePaymentSummary);
     copyPixButton.addEventListener('click', copyPixCode);
     checkPaymentButton.addEventListener('click', checkPaymentStatus);
     lookupCepButton.addEventListener('click', lookupCep);
