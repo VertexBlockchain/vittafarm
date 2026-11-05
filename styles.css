@@ -108,11 +108,14 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 .products-track::-webkit-scrollbar { display: none; }
 .product-card { min-width: 0; flex: 0 0 calc((100% - 40px) / 3); overflow: hidden; scroll-snap-align: start; border: 1px solid #d9e2da; border-radius: 20px; background: var(--white); box-shadow: 0 3px 12px rgba(26, 63, 54, .035); transition: transform .24s ease, box-shadow .24s ease, border-color .24s ease; }
 .product-card:hover { transform: translateY(-4px); border-color: #b7d1c3; box-shadow: var(--shadow); }
+.product-card--promotion { border: 3px solid #c93636; box-shadow: 0 5px 18px rgba(180, 42, 42, .16); }
+.product-card--promotion:hover { border-color: #a92727; box-shadow: 0 9px 24px rgba(180, 42, 42, .22); }
 .product-visual { position: relative; height: 270px; display: grid; place-items: center; margin: 12px 12px 0; overflow: hidden; border-radius: 13px; background: linear-gradient(140deg, #edf2e9 0%, #f4f4ec 52%, #e7f0e9 100%); }
 .product-visual::after { position: absolute; inset: 12px; border: 1px solid rgba(42, 96, 76, .07); border-radius: 8px; content: ''; pointer-events: none; }
 .product-visual img { width: 100%; height: 100%; padding: 12px; object-fit: contain; transition: transform .35s ease; }
 .product-card:hover .product-visual img { transform: scale(1.035); }
 .product-index { position: absolute; z-index: 1; top: 12px; left: 12px; display: grid; width: 32px; height: 32px; place-items: center; border: 1px solid rgba(23, 60, 56, .09); border-radius: 50%; color: var(--ink); background: rgba(255, 254, 250, .94); font-size: 9px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.product-promotion-badge { position: absolute; z-index: 2; top: 12px; right: 12px; padding: 7px 11px; border-radius: 999px; color: #fff; background: #c93636; font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; box-shadow: 0 4px 10px rgba(120, 20, 20, .2); }
 .product-detail { padding: 19px 21px 20px; }
 .product-detail h3 { margin-bottom: 4px; font-family: Manrope, sans-serif; font-size: 23px; font-weight: 700; letter-spacing: -.05em; line-height: 1.2; }
 .product-dose { min-height: 20px; margin-bottom: 18px; color: #6a7c74; font-size: 12px; }

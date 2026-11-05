@@ -210,7 +210,7 @@ function openCheckout(product) {
 
 function addProductCard(product, index) {
   const card = document.createElement('article');
-  card.className = 'product-card';
+  card.className = `product-card${product.id === 'tirzec' ? ' product-card--promotion' : ''}`;
   card.setAttribute('role', 'listitem');
   card.setAttribute('aria-posinset', String(index + 1));
   card.setAttribute('aria-setsize', String(catalog.products.length));
@@ -220,6 +220,13 @@ function addProductCard(product, index) {
   const number = document.createElement('span');
   number.className = 'product-index';
   number.textContent = String(index + 1).padStart(2, '0');
+  if (product.id === 'tirzec') {
+    const promotion = document.createElement('span');
+    promotion.className = 'product-promotion-badge';
+    promotion.textContent = 'Promoção';
+    promotion.setAttribute('aria-label', 'Produto em promoção');
+    visual.append(promotion);
+  }
   const image = document.createElement('img');
   image.src = product.image;
   image.alt = product.alt;
