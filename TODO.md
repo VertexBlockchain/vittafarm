@@ -32,4 +32,4 @@
 - [x] Categorias removidas da vitrine — Ocultar de todos os cards as mensagens de uso de pesquisa, apresentação a conferir, registro a confirmar e demais categorias/avisos equivalentes.
 - [x] Banner sem fechamento do mês — Remover a mensagem promocional de fechamento do mês; a oferta exibida posteriormente foi substituída por PIX somente à vista.
 - [x] PIX somente à vista na interface — Remover textos, cálculos e opção de compra parcelada do banner e do checkout; manter o pedido com PIX à vista.
-- [x] Promoção do Tirzec — Atualizar o preço para R$ 422,00 e destacar o card com contorno e selo vermelho de promoção.
+- [x] Preço do Tirzec — Atualizar somente o preço para R$ 422,00, sem destaque visual adicional.
