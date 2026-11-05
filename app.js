@@ -18,6 +18,8 @@ const checkoutFormView = document.querySelector('#checkout-form-view');
 const checkoutProductName = document.querySelector('#checkout-product-name');
 const checkoutProductSummary = document.querySelector('#checkout-product-summary');
 const quantityInput = document.querySelector('#product-quantity');
+const quantityDecrease = document.querySelector('#quantity-decrease');
+const quantityIncrease = document.querySelector('#quantity-increase');
 const paymentSummary = document.querySelector('#payment-summary');
 const checkoutError = document.querySelector('#checkout-error');
 const checkoutSubmit = document.querySelector('#checkout-submit');
@@ -170,6 +172,8 @@ function openCheckout(product) {
   checkoutForm.reset();
   checkoutForm.querySelector('[name="paymentMethod"][value="avista"]').checked = true;
   quantityInput.value = '1';
+  quantityDecrease.disabled = true;
+  quantityIncrease.disabled = false;
   checkoutError.hidden = true;
   checkoutError.textContent = '';
   checkoutFormView.hidden = false;
@@ -313,6 +317,14 @@ function selectedPaymentMethod() {
 function getSelectedQuantity() {
   const quantity = Number.parseInt(quantityInput?.value || '1', 10);
   return Number.isInteger(quantity) && quantity >= 1 && quantity <= 20 ? quantity : 1;
+}
+
+function changeQuantity(delta) {
+  const next = Math.max(1, Math.min(20, getSelectedQuantity() + delta));
+  quantityInput.value = String(next);
+  quantityDecrease.disabled = next === 1;
+  quantityIncrease.disabled = next === 20;
+  updatePaymentSummary();
 }
 
 function updatePaymentSummary() {
@@ -595,7 +607,8 @@ async function loadCatalog() {
     window.addEventListener('resize', updateCarousel);
     checkoutForm.addEventListener('submit', submitCheckout);
     checkoutForm.querySelectorAll('[name="paymentMethod"]').forEach((input) => input.addEventListener('change', updatePaymentSummary));
-    quantityInput.addEventListener('input', updatePaymentSummary);
+    quantityDecrease.addEventListener('click', () => changeQuantity(-1));
+    quantityIncrease.addEventListener('click', () => changeQuantity(1));
     copyPixButton.addEventListener('click', copyPixCode);
     checkPaymentButton.addEventListener('click', checkPaymentStatus);
     lookupCepButton.addEventListener('click', lookupCep);
