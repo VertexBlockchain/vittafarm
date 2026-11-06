@@ -35,3 +35,5 @@
 - [x] Preço do Tirzec — Restaurar o valor normal de R$ 629,90, sem destaque visual adicional.
 - [x] Quantidade por pedido — Permitir de 1 a 20 unidades em todos os produtos, multiplicar o preço do produto e cobrar apenas um frete fixo de R$ 30,00 por pedido.
 - [x] Cartão via WhatsApp — Disponibilizar cartão de crédito em até 3x e encaminhar produto, quantidade e total ao WhatsApp para gerar link particular.
+- [x] Status manual no admin — Adicionar ação protegida para marcar como pago o último pedido de um cliente, atualizando o pedido e seus pagamentos vinculados.
+- [ ] Senha do admin no Render — O endpoint está ativo, mas a senha informada retorna “Senha inválida”; redefinir o segredo no Render se o operador não lembrar o valor atual.

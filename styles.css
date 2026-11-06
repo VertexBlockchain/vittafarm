@@ -426,6 +426,9 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
 .admin-secondary-button { min-height: 38px; padding: 0 13px; border: 1px solid #cbd9d0; border-radius: 999px; color: var(--green-dark); background: transparent; font-size: 10px; font-weight: 700; cursor: pointer; }
 .admin-secondary-button:hover { background: var(--mint-soft); }
 .admin-secondary-button:disabled { cursor: wait; opacity: .6; }
+.admin-mark-paid-button { padding: 7px 9px; border: 1px solid #b8d5c8; border-radius: 8px; color: var(--green-dark); background: #edf7ef; font-size: 10px; font-weight: 800; cursor: pointer; }
+.admin-mark-paid-button:hover { color: #fff; border-color: var(--green); background: var(--green); }
+.admin-mark-paid-button:disabled { opacity: .6; cursor: wait; }
 .admin-table-scroll { overflow-x: auto; border: 1px solid #e0e7df; border-radius: 12px; }
 .admin-table { width: 100%; min-width: 1020px; border-collapse: collapse; text-align: left; }
 .admin-customers-table { min-width: 820px; }

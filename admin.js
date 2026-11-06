@@ -133,6 +133,32 @@ function createCustomerRow(customer) {
   addCell(row, customer.whatsappMarketingConsent
     ? `Autorizou em ${dateLabel(customer.consentAt)}`
     : 'Não autorizou');
+  const actionCell = document.createElement('td');
+  if (customer.lastOrderId && normalized !== 'PAID') {
+    const button = document.createElement('button');
+    button.className = 'admin-mark-paid-button';
+    button.type = 'button';
+    button.textContent = 'Marcar como pago';
+    button.addEventListener('click', async () => {
+      if (!window.confirm(`Confirmar pagamento recebido de ${name}?`)) return;
+      button.disabled = true;
+      button.textContent = 'Atualizando…';
+      try {
+        const result = await api(`/api/admin/orders/${customer.lastOrderId}/mark-paid`, { method: 'POST' });
+        customer.lastOrderStatus = 'PAID';
+        setMessage(customersMessage, result.message || 'Pedido atualizado.');
+        renderCustomers();
+      } catch (error) {
+        button.disabled = false;
+        button.textContent = 'Marcar como pago';
+        setMessage(customersMessage, error.message || 'Não foi possível atualizar o pedido.', true);
+      }
+    });
+    actionCell.append(button);
+  } else {
+    actionCell.textContent = normalized === 'PAID' ? 'Pago' : '—';
+  }
+  row.append(actionCell);
   return row;
 }
 
@@ -157,7 +183,7 @@ function renderCustomers() {
   if (filtered.length === 0) {
     const row = document.createElement('tr');
     const cell = document.createElement('td');
-    cell.colSpan = 8;
+    cell.colSpan = 9;
     cell.className = 'admin-empty-state';
     cell.textContent = allCustomers.length === 0
       ? 'Nenhum cliente cadastrado ainda.'

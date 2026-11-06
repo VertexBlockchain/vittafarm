@@ -294,7 +294,10 @@ async function listCustomersForAdmin(pool) {
          THEN customers.whatsapp_marketing_consent_at ELSE NULL
        END AS marketing_consent_at,
        COALESCE(order_totals.order_count, 0) AS order_count,
+       last_order.id AS last_order_id,
        last_order.product_name AS last_order_product_name,
+       last_order.total_cents AS last_order_total_cents,
+       last_order.quantity AS last_order_quantity,
        last_order.payment_status AS last_order_status,
        last_order.created_at AS last_order_at
      FROM customer_accounts customers
@@ -305,7 +308,7 @@ async function listCustomersForAdmin(pool) {
         GROUP BY customer_id
      ) order_totals ON order_totals.customer_id = customers.id
      LEFT JOIN LATERAL (
-       SELECT product_name, payment_status, created_at
+       SELECT id, product_name, total_cents, quantity, payment_status, created_at
          FROM orders
         WHERE customer_id = customers.id
         ORDER BY created_at DESC
@@ -319,9 +322,12 @@ async function listCustomersForAdmin(pool) {
     email: row.email,
     displayName: row.display_name,
     phone: row.phone || '',
+    lastOrderId: row.last_order_id || '',
     whatsappMarketingConsent: Boolean(row.marketing_consent_at),
     orderCount: Number(row.order_count),
     lastOrderProductName: row.last_order_product_name || '',
+    lastOrderTotalCents: Number(row.last_order_total_cents || 0),
+    lastOrderQuantity: Number(row.last_order_quantity || 1),
     lastOrderStatus: row.last_order_status || 'NO_ORDER',
     lastOrderAt: row.last_order_at ? toIso(row.last_order_at) : '',
     createdAt: toIso(row.created_at),
@@ -342,6 +348,28 @@ async function listCustomerOrders(pool, customerId) {
     paymentStatus: row.payment_status,
     createdAt: toIso(row.created_at),
   }));
+}
+
+async function markOrderPaidByAdmin(pool, orderId) {
+  if (typeof orderId !== 'string' || !UUID_PATTERN.test(orderId)) return { updated: false };
+  const [rows] = await pool.execute(
+    `UPDATE orders
+        SET payment_status = 'PAID', updated_at = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
+      WHERE id = ? AND payment_status <> 'PAID'
+      RETURNING id`,
+    [orderId],
+  );
+  if (!Array.isArray(rows) || rows.length === 0) {
+    const [existing] = await pool.execute("SELECT id FROM orders WHERE id = ? AND payment_status = 'PAID' LIMIT 1", [orderId]);
+    return { updated: false, alreadyPaid: Array.isArray(existing) && existing.length > 0 };
+  }
+  await pool.execute(
+    `UPDATE order_payments
+        SET payment_status = 'PAID', updated_at = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
+      WHERE order_id = ? AND payment_status <> 'PAID'`,
+    [orderId],
+  );
+  return { updated: true, alreadyPaid: false };
 }
 
 async function getCustomerOrderStatus(pool, customerId, orderId) {
@@ -407,6 +435,7 @@ module.exports = {
   getCustomerOrderStatus,
   listCustomerOrders,
   listCustomersForAdmin,
+  markOrderPaidByAdmin,
   markOrderPaidByTransactionId,
   processCheckout,
 };

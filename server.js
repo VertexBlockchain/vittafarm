@@ -7,6 +7,7 @@ const {
   getCustomerOrderStatus,
   listCustomerOrders,
   listCustomersForAdmin,
+  markOrderPaidByAdmin,
   markOrderPaidByTransactionId,
   processCheckout,
 } = require('./src/orders');
@@ -508,6 +509,24 @@ async function handleAdmin(req, res, pathname) {
       return sendJson(res, 200, { customers: await listCustomersForAdmin(pool) });
     } catch {
       return sendJson(res, 503, { error: 'Não foi possível consultar os clientes agora.' });
+    }
+  }
+
+  const markPaidMatch = pathname.match(/^\/api\/admin\/orders\/([0-9a-f-]{36})\/mark-paid$/i);
+  if (markPaidMatch) {
+    if (req.method !== 'POST') {
+      res.setHeader('Allow', 'POST');
+      return sendJson(res, 405, { error: 'Use POST para atualizar o pedido.' });
+    }
+    const pool = getPool();
+    if (!await requireAdmin(req, res, pool)) return;
+    try {
+      const result = await markOrderPaidByAdmin(pool, markPaidMatch[1]);
+      if (result.alreadyPaid) return sendJson(res, 200, { updated: false, message: 'Este pedido já estava marcado como pago.' });
+      if (!result.updated) return sendJson(res, 404, { error: 'Pedido não encontrado.' });
+      return sendJson(res, 200, { updated: true, message: 'Pedido marcado como pago.' });
+    } catch {
+      return sendJson(res, 503, { error: 'Não foi possível atualizar o pagamento agora.' });
     }
   }
 
