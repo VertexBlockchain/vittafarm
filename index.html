@@ -227,8 +227,13 @@
                 <input type="radio" name="paymentMethod" value="avista" checked />
                 <span><strong>Pix à vista</strong><small>Pagamento do total em uma cobrança.</small></span>
               </label>
+              <label class="payment-option">
+                <input type="radio" name="paymentMethod" value="credito" />
+                <span><strong>Cartão de crédito em até 3x</strong><small>Solicite o link de pagamento particular pelo WhatsApp.</small></span>
+              </label>
               <p class="payment-method-help" id="payment-method-help">O total inclui frete fixo de R$ 30,00.</p>
               <p class="payment-summary" id="payment-summary" aria-live="polite"></p>
+              <a class="whatsapp-checkout-button" id="credit-whatsapp-link" href="https://wa.me/5547920066015" target="_blank" rel="noopener noreferrer" hidden>Solicitar link pelo WhatsApp</a>
             </fieldset>
             <div class="shipping-notice" role="note"><strong>Frete fixo</strong><span>R$ 30,00 — somado ao total do pedido.</span></div>
             <fieldset class="address-fieldset">

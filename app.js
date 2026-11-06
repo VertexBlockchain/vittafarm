@@ -21,6 +21,7 @@ const quantityInput = document.querySelector('#product-quantity');
 const quantityDecrease = document.querySelector('#quantity-decrease');
 const quantityIncrease = document.querySelector('#quantity-increase');
 const paymentSummary = document.querySelector('#payment-summary');
+const creditWhatsappLink = document.querySelector('#credit-whatsapp-link');
 const checkoutError = document.querySelector('#checkout-error');
 const checkoutSubmit = document.querySelector('#checkout-submit');
 const checkoutResult = document.querySelector('#pix-result');
@@ -174,6 +175,8 @@ function openCheckout(product) {
   quantityInput.value = '1';
   quantityDecrease.disabled = true;
   quantityIncrease.disabled = false;
+  creditWhatsappLink.hidden = true;
+  checkoutSubmit.hidden = false;
   checkoutError.hidden = true;
   checkoutError.textContent = '';
   checkoutFormView.hidden = false;
@@ -311,7 +314,7 @@ function statusLabel(value) {
 }
 
 function selectedPaymentMethod() {
-  return 'avista';
+  return checkoutForm.querySelector('[name="paymentMethod"]:checked')?.value || 'avista';
 }
 
 function getSelectedQuantity() {
@@ -333,7 +336,14 @@ function updatePaymentSummary() {
   const baseTotalCents = (selectedProduct.priceCents * quantity) + SHIPPING_CENTS;
   const priceUnit = selectedProduct.priceUnit ? `por ${selectedProduct.priceUnit}` : 'por caixa';
   checkoutProductSummary.textContent = `Produto: ${formatPrice(selectedProduct.priceCents)} ${priceUnit} × ${quantity}. Frete fixo único: ${formatPrice(SHIPPING_CENTS)}. Total à vista: ${formatPrice(baseTotalCents)}.`;
-  paymentSummary.textContent = `Total no Pix: ${formatPrice(baseTotalCents)} (produto + frete fixo de R$ 30,00).`;
+  const creditSelected = selectedPaymentMethod() === 'credito';
+  paymentSummary.textContent = creditSelected
+    ? `Total no cartão: ${formatPrice(baseTotalCents)} (produto + frete). Link particular em até 3x pelo WhatsApp.`
+    : `Total no Pix: ${formatPrice(baseTotalCents)} (produto + frete fixo de R$ 30,00).`;
+  creditWhatsappLink.hidden = !creditSelected;
+  checkoutSubmit.hidden = creditSelected;
+  const message = `Olá, Vitta Farm! Quero pagar com cartão de crédito em até 3x. Produto: ${selectedProduct.name} ${selectedProduct.dose}. Quantidade: ${quantity}. Total com frete: ${formatPrice(baseTotalCents)}. Pode gerar o link particular?`;
+  creditWhatsappLink.href = `https://wa.me/5547920066015?text=${encodeURIComponent(message)}`;
 }
 
 function currentCepDigits() {
@@ -407,7 +417,6 @@ async function submitCheckout(event) {
   event.preventDefault();
   checkoutError.hidden = true;
   checkoutError.textContent = '';
-  if (!checkoutForm.reportValidity()) return;
   if (!selectedProduct) return;
   const quantity = Number.parseInt(quantityInput.value, 10);
   if (!Number.isInteger(quantity) || quantity < 1 || quantity > 20) {
@@ -415,6 +424,11 @@ async function submitCheckout(event) {
     quantityInput.focus();
     return;
   }
+  if (selectedPaymentMethod() === 'credito') {
+    creditWhatsappLink.click();
+    return;
+  }
+  if (!checkoutForm.reportValidity()) return;
 
   const nome = nameInput.value.trim().replace(/\s+/g, ' ');
   const cpf = cpfInput.value.replace(/\D/g, '');
