@@ -80,7 +80,10 @@
           <button class="button button-primary admin-action-button" id="create-voucher" type="submit">Gerar voucher</button>
         </form>
         <p class="admin-message" id="admin-voucher-message" role="status" aria-live="polite"></p>
-        <div class="admin-generated-code" id="admin-generated-code" hidden></div>
+        <div class="admin-generated-code" id="admin-generated-code" hidden>
+          <span id="admin-generated-code-text"></span>
+          <button class="admin-copy-code-button" id="copy-generated-code" type="button">Copiar código</button>
+        </div>
         <div class="admin-table-scroll">
           <table class="admin-table admin-vouchers-table">
             <caption class="visually-hidden">Vouchers criados no painel</caption>

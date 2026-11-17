@@ -20,9 +20,12 @@ const voucherValue = document.querySelector('#voucher-value');
 const voucherDuration = document.querySelector('#voucher-duration');
 const voucherMessage = document.querySelector('#admin-voucher-message');
 const generatedCode = document.querySelector('#admin-generated-code');
+const generatedCodeText = document.querySelector('#admin-generated-code-text');
+const copyGeneratedCodeButton = document.querySelector('#copy-generated-code');
 const vouchersBody = document.querySelector('#admin-vouchers-body');
 const refreshVouchersButton = document.querySelector('#refresh-vouchers');
 let allCustomers = [];
+let lastGeneratedVoucherCode = '';
 
 function setMessage(element, message, isError = false) {
   element.textContent = message;
@@ -294,13 +297,24 @@ voucherForm.addEventListener('submit', async (event) => {
   try {
     const result = await api('/api/admin/vouchers/create', { method: 'POST', body: JSON.stringify({ discountType: voucherType.value, discountValue: Number(voucherValue.value), durationDays: Number(voucherDuration.value) }) });
     const voucher = result.voucher;
-    generatedCode.textContent = `Voucher gerado: ${voucher.code} · ${voucher.discountType === 'PERCENTAGE' ? `${voucher.discountValue}%` : money.format(voucher.discountValue)} · expira em ${dateLabel(voucher.expiresAt)}`;
+    lastGeneratedVoucherCode = voucher.code;
+    generatedCodeText.textContent = `Voucher gerado: ${voucher.code} · ${voucher.discountType === 'PERCENTAGE' ? `${voucher.discountValue}%` : money.format(voucher.discountValue)} · expira em ${dateLabel(voucher.expiresAt)}`;
     generatedCode.hidden = false;
     setMessage(voucherMessage, 'Voucher criado com sucesso.');
     voucherForm.reset();
     await loadVouchers();
   } catch (error) { setMessage(voucherMessage, error.message || 'Não foi possível gerar o voucher.', true); }
   finally { button.disabled = false; }
+});
+copyGeneratedCodeButton.addEventListener('click', async () => {
+  if (!lastGeneratedVoucherCode) return;
+  try {
+    await navigator.clipboard.writeText(lastGeneratedVoucherCode);
+    copyGeneratedCodeButton.textContent = 'Código copiado';
+  } catch {
+    setMessage(voucherMessage, `Copie manualmente: ${lastGeneratedVoucherCode}`);
+  }
+  window.setTimeout(() => { copyGeneratedCodeButton.textContent = 'Copiar código'; }, 1800);
 });
 logoutButton.addEventListener('click', async () => {
   try {

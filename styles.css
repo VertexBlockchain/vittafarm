@@ -611,3 +611,7 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
   .coupon-field { grid-template-columns: 1fr; }
   .coupon-apply { width: 100%; }
 }
+.admin-generated-code { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.admin-copy-code-button { flex: 0 0 auto; border: 1px solid #9fcab0; border-radius: 8px; padding: 8px 11px; color: #155c4e; background: #fff; cursor: pointer; font: inherit; font-size: 11px; font-weight: 800; }
+.admin-copy-code-button:hover { background: #e5f4e8; }
+@media (max-width: 640px) { .admin-generated-code { align-items: stretch; flex-direction: column; } }
