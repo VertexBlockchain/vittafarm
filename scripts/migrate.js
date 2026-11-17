@@ -41,6 +41,10 @@ async function runMigrations() {
 
 runMigrations().catch((error) => {
   const code = typeof error?.code === 'string' ? error.code : 'UNKNOWN';
-  console.error(`Falha ao aplicar as migrations do banco (${code}). Nenhum detalhe de credencial foi exibido.`);
+  const safeMessage = typeof error?.message === 'string'
+    ? error.message.replace(/postgres(?:ql)?:\/\/[^\s]+/gi, 'postgres://[redacted]')
+    : 'Erro sem mensagem.';
+  console.error(`Falha ao aplicar as migrations do banco (${code}). ${safeMessage}`);
+  if (error?.name) console.error(`Tipo do erro: ${error.name}.`);
   process.exitCode = 1;
 });
