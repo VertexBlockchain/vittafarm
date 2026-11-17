@@ -1,5 +1,6 @@
 const loginView = document.querySelector('#admin-login-view');
 const customersView = document.querySelector('#admin-customers-view');
+const vouchersView = document.querySelector('#admin-vouchers-view');
 const loginForm = document.querySelector('#admin-login-form');
 const passwordInput = document.querySelector('#admin-password');
 const passwordToggleButton = document.querySelector('#admin-password-toggle');
@@ -13,6 +14,14 @@ const logoutButton = document.querySelector('#admin-logout');
 const searchInput = document.querySelector('#customer-search');
 const orderFilter = document.querySelector('#customer-order-filter');
 const marketingFilter = document.querySelector('#customer-marketing-filter');
+const voucherForm = document.querySelector('#admin-voucher-form');
+const voucherType = document.querySelector('#voucher-type');
+const voucherValue = document.querySelector('#voucher-value');
+const voucherDuration = document.querySelector('#voucher-duration');
+const voucherMessage = document.querySelector('#admin-voucher-message');
+const generatedCode = document.querySelector('#admin-generated-code');
+const vouchersBody = document.querySelector('#admin-vouchers-body');
+const refreshVouchersButton = document.querySelector('#refresh-vouchers');
 let allCustomers = [];
 
 function setMessage(element, message, isError = false) {
@@ -55,6 +64,7 @@ updatePasswordCount();
 function showLogin(message = '', isError = false) {
   loginView.hidden = false;
   customersView.hidden = true;
+  vouchersView.hidden = true;
   passwordInput.value = '';
   updatePasswordCount();
   setPasswordVisibility(false);
@@ -64,7 +74,43 @@ function showLogin(message = '', isError = false) {
 function showCustomers() {
   loginView.hidden = true;
   customersView.hidden = false;
+  vouchersView.hidden = false;
   setMessage(loginMessage, '');
+}
+
+
+function voucherLabel(voucher) {
+  return voucher.discountType === 'PERCENTAGE' ? `${voucher.discountValue}%` : money.format(voucher.discountValue);
+}
+
+const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+function renderVouchers(vouchers) {
+  vouchersBody.replaceChildren();
+  if (!vouchers.length) {
+    const row = document.createElement('tr'); const cell = document.createElement('td');
+    cell.colSpan = 4; cell.className = 'admin-empty-state'; cell.textContent = 'Nenhum voucher gerado ainda.';
+    row.append(cell); vouchersBody.append(row); return;
+  }
+  vouchers.forEach((voucher) => {
+    const row = document.createElement('tr');
+    addCell(row, voucher.code);
+    addCell(row, voucherLabel(voucher));
+    addCell(row, `${dateLabel(voucher.startsAt)} até ${dateLabel(voucher.expiresAt)}`);
+    const status = document.createElement('span'); status.className = `admin-status ${voucher.active ? 'admin-status-paid' : 'admin-status-unknown'}`;
+    status.textContent = voucher.active ? 'Ativo' : 'Expirado';
+    const statusCell = document.createElement('td'); statusCell.append(status); row.append(statusCell); vouchersBody.append(row);
+  });
+}
+
+async function loadVouchers() {
+  refreshVouchersButton.disabled = true;
+  try {
+    const result = await api('/api/admin/vouchers', { method: 'GET' });
+    renderVouchers(Array.isArray(result.vouchers) ? result.vouchers : []);
+  } catch (error) {
+    if (/sessão|autenticação/i.test(error.message)) return showLogin('Sua sessão expirou. Entre novamente.', true);
+    setMessage(voucherMessage, error.message || 'Não foi possível carregar os vouchers.', true);
+  } finally { refreshVouchersButton.disabled = false; }
 }
 
 function addCell(row, text, className = '') {
@@ -224,7 +270,7 @@ loginForm.addEventListener('submit', async (event) => {
     updatePasswordCount();
     setPasswordVisibility(false);
     showCustomers();
-    await loadCustomers();
+    await Promise.all([loadCustomers(), loadVouchers()]);
   } catch (error) {
     setMessage(loginMessage, error.message || 'Não foi possível entrar.', true);
     passwordInput.select();
@@ -238,6 +284,24 @@ searchInput.addEventListener('input', renderCustomers);
 orderFilter.addEventListener('change', renderCustomers);
 marketingFilter.addEventListener('change', renderCustomers);
 refreshCustomersButton.addEventListener('click', loadCustomers);
+refreshVouchersButton.addEventListener('click', loadVouchers);
+voucherForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  generatedCode.hidden = true;
+  setMessage(voucherMessage, 'Gerando voucher…');
+  const button = document.querySelector('#create-voucher');
+  button.disabled = true;
+  try {
+    const result = await api('/api/admin/vouchers/create', { method: 'POST', body: JSON.stringify({ discountType: voucherType.value, discountValue: Number(voucherValue.value), durationDays: Number(voucherDuration.value) }) });
+    const voucher = result.voucher;
+    generatedCode.textContent = `Voucher gerado: ${voucher.code} · ${voucher.discountType === 'PERCENTAGE' ? `${voucher.discountValue}%` : money.format(voucher.discountValue)} · expira em ${dateLabel(voucher.expiresAt)}`;
+    generatedCode.hidden = false;
+    setMessage(voucherMessage, 'Voucher criado com sucesso.');
+    voucherForm.reset();
+    await loadVouchers();
+  } catch (error) { setMessage(voucherMessage, error.message || 'Não foi possível gerar o voucher.', true); }
+  finally { button.disabled = false; }
+});
 logoutButton.addEventListener('click', async () => {
   try {
     await api('/api/admin/logout', { method: 'POST' });
@@ -246,6 +310,7 @@ logoutButton.addEventListener('click', async () => {
   }
   allCustomers = [];
   customersBody.replaceChildren();
+  vouchersBody.replaceChildren();
   showLogin('Você saiu do painel.');
 });
 
@@ -253,7 +318,7 @@ async function initialize() {
   try {
     await api('/api/admin/session', { method: 'GET' });
     showCustomers();
-    await loadCustomers();
+    await Promise.all([loadCustomers(), loadVouchers()]);
   } catch {
     showLogin();
   }

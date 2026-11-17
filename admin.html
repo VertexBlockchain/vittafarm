@@ -52,6 +52,44 @@
         </form>
       </section>
 
+      <section class="admin-orders-section admin-voucher-section" id="admin-vouchers-view" aria-labelledby="admin-vouchers-title" hidden>
+        <div class="admin-orders-heading">
+          <div>
+            <p class="section-kicker">Promoções</p>
+            <h2 id="admin-vouchers-title">Gerar voucher de desconto</h2>
+          </div>
+          <button class="admin-secondary-button" id="refresh-vouchers" type="button">Atualizar</button>
+        </div>
+        <p class="admin-intro admin-orders-help">Escolha percentual ou valor fixo e defina se o voucher vale por 1 ou 7 dias. O código gerado será reconhecido automaticamente no checkout.</p>
+        <form class="admin-voucher-form" id="admin-voucher-form">
+          <label>Tipo de desconto
+            <select id="voucher-type" name="discountType">
+              <option value="PERCENTAGE">Porcentagem (%)</option>
+              <option value="FIXED">Valor fixo (R$)</option>
+            </select>
+          </label>
+          <label>Desconto
+            <input id="voucher-value" name="discountValue" type="number" min="1" step="0.01" placeholder="10" required />
+          </label>
+          <label>Válido por
+            <select id="voucher-duration" name="durationDays">
+              <option value="1">1 dia</option>
+              <option value="7">7 dias</option>
+            </select>
+          </label>
+          <button class="button button-primary admin-action-button" id="create-voucher" type="submit">Gerar voucher</button>
+        </form>
+        <p class="admin-message" id="admin-voucher-message" role="status" aria-live="polite"></p>
+        <div class="admin-generated-code" id="admin-generated-code" hidden></div>
+        <div class="admin-table-scroll">
+          <table class="admin-table admin-vouchers-table">
+            <caption class="visually-hidden">Vouchers criados no painel</caption>
+            <thead><tr><th scope="col">Código</th><th scope="col">Desconto</th><th scope="col">Validade</th><th scope="col">Situação</th></tr></thead>
+            <tbody id="admin-vouchers-body"></tbody>
+          </table>
+        </div>
+      </section>
+
       <section class="admin-orders-section" id="admin-customers-view" aria-labelledby="admin-customers-title" hidden>
         <div class="admin-orders-heading">
           <div>

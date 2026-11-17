@@ -592,3 +592,22 @@ h1, h2 { font-family: Manrope, 'Segoe UI', sans-serif; }
   #admin-customers-view .admin-orders-heading { align-items: flex-start; flex-direction: column; }
   #admin-customers-view .admin-actions { width: 100%; justify-content: flex-start; }
 }
+
+/* Gerador de vouchers */
+.admin-voucher-section { margin-bottom: 24px; }
+.admin-voucher-form { display: grid; grid-template-columns: 1.2fr 1fr 1fr auto; align-items: end; gap: 12px; margin: 16px 0; }
+.admin-voucher-form label { display: grid; gap: 6px; color: #5d766a; font-size: 10px; font-weight: 700; }
+.admin-voucher-form input, .admin-voucher-form select { min-height: 40px; padding: 8px 10px; border: 1px solid #d3ded5; border-radius: 10px; color: var(--green-dark); background: #fff; font: inherit; font-size: 12px; }
+.admin-voucher-form .admin-action-button { min-height: 40px; width: auto; padding-inline: 17px; }
+.admin-generated-code { margin: 0 0 15px; padding: 13px 15px; border: 1px solid #b9d9c6; border-radius: 11px; color: #155c4e; background: #edf7ef; font-size: 12px; font-weight: 800; }
+.admin-vouchers-table { min-width: 720px; }
+.coupon-field { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 8px; }
+.coupon-field .form-field { margin: 0; }
+.coupon-apply { min-height: 46px; }
+.coupon-message { grid-column: 1 / -1; min-height: 16px; margin: 0; color: #49665a; font-size: 11px; line-height: 1.45; }
+@media (max-width: 640px) {
+  .admin-voucher-form { grid-template-columns: 1fr; }
+  .admin-voucher-form .admin-action-button { width: 100%; }
+  .coupon-field { grid-template-columns: 1fr; }
+  .coupon-apply { width: 100%; }
+}

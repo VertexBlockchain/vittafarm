@@ -20,6 +20,9 @@ const checkoutProductSummary = document.querySelector('#checkout-product-summary
 const quantityInput = document.querySelector('#product-quantity');
 const quantityDecrease = document.querySelector('#quantity-decrease');
 const quantityIncrease = document.querySelector('#quantity-increase');
+const couponCodeInput = document.querySelector('#coupon-code');
+const applyCouponButton = document.querySelector('#apply-coupon');
+const couponMessage = document.querySelector('#coupon-message');
 const paymentSummary = document.querySelector('#payment-summary');
 const creditWhatsappLink = document.querySelector('#credit-whatsapp-link');
 const checkoutError = document.querySelector('#checkout-error');
@@ -66,6 +69,7 @@ let currentOrderId = '';
 let cepLookupTimer = 0;
 let cepLookupSequence = 0;
 let lastViaCepValues = { street: '', neighborhood: '', city: '', state: '' };
+let appliedCoupon = null;
 
 function formatPrice(priceCents) {
   if (!Number.isSafeInteger(priceCents) || priceCents <= 0) return 'Preço a confirmar';
@@ -173,6 +177,9 @@ function openCheckout(product) {
   checkoutForm.reset();
   checkoutForm.querySelector('[name="paymentMethod"][value="avista"]').checked = true;
   quantityInput.value = '1';
+  appliedCoupon = null;
+  couponCodeInput.value = '';
+  couponMessage.textContent = '';
   quantityDecrease.disabled = true;
   quantityIncrease.disabled = false;
   creditWhatsappLink.hidden = true;
@@ -327,23 +334,58 @@ function changeQuantity(delta) {
   quantityInput.value = String(next);
   quantityDecrease.disabled = next === 1;
   quantityIncrease.disabled = next === 20;
+  if (appliedCoupon) {
+    appliedCoupon = null;
+    couponMessage.textContent = 'A quantidade mudou. Aplique o voucher novamente.';
+  }
   updatePaymentSummary();
 }
 
 function updatePaymentSummary() {
   if (!selectedProduct || !paymentSummary) return;
   const quantity = getSelectedQuantity();
-  const baseTotalCents = (selectedProduct.priceCents * quantity) + SHIPPING_CENTS;
+  const productTotalCents = selectedProduct.priceCents * quantity;
+  const discountCents = appliedCoupon?.discountCents || 0;
+  const baseTotalCents = productTotalCents - discountCents + SHIPPING_CENTS;
   const priceUnit = selectedProduct.priceUnit ? `por ${selectedProduct.priceUnit}` : 'por caixa';
-  checkoutProductSummary.textContent = `Produto: ${formatPrice(selectedProduct.priceCents)} ${priceUnit} × ${quantity}. Frete fixo único: ${formatPrice(SHIPPING_CENTS)}. Total à vista: ${formatPrice(baseTotalCents)}.`;
+  const discountLabel = discountCents ? ` Desconto: -${formatPrice(discountCents)}.` : '';
+  checkoutProductSummary.textContent = `Produto: ${formatPrice(selectedProduct.priceCents)} ${priceUnit} × ${quantity}.${discountLabel} Frete fixo único: ${formatPrice(SHIPPING_CENTS)}. Total à vista: ${formatPrice(baseTotalCents)}.`;
   const creditSelected = selectedPaymentMethod() === 'credito';
   paymentSummary.textContent = creditSelected
     ? `Total no cartão: ${formatPrice(baseTotalCents)} (produto + frete). Link particular em até 3x pelo WhatsApp.`
     : `Total no Pix: ${formatPrice(baseTotalCents)} (produto + frete fixo de R$ 30,00).`;
   creditWhatsappLink.hidden = !creditSelected;
   checkoutSubmit.hidden = creditSelected;
-  const message = `Olá, Vitta Farm! Quero pagar com cartão de crédito em até 3x. Produto: ${selectedProduct.name} ${selectedProduct.dose}. Quantidade: ${quantity}. Total com frete: ${formatPrice(baseTotalCents)}. Pode gerar o link particular?`;
+  const message = `Olá, Vitta Farm! Quero pagar com cartão de crédito em até 3x. Produto: ${selectedProduct.name} ${selectedProduct.dose}. Quantidade: ${quantity}. Total com frete: ${formatPrice(baseTotalCents)}${appliedCoupon ? ` com voucher ${appliedCoupon.code}` : ''}. Pode gerar o link particular?`;
   creditWhatsappLink.href = `https://wa.me/5547920066015?text=${encodeURIComponent(message)}`;
+}
+
+async function applyCoupon() {
+  const code = couponCodeInput.value.trim().toUpperCase();
+  if (!code) {
+    appliedCoupon = null;
+    couponMessage.textContent = 'Digite um voucher para aplicar.';
+    updatePaymentSummary();
+    return;
+  }
+  applyCouponButton.disabled = true;
+  couponMessage.textContent = 'Validando voucher…';
+  try {
+    const response = await fetch('/api/vouchers/validate', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store',
+      body: JSON.stringify({ code, productId: selectedProduct.id, quantity: getSelectedQuantity() }),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.voucher) throw new Error(result.error || 'Voucher inexistente ou expirado.');
+    appliedCoupon = result.voucher;
+    couponCodeInput.value = appliedCoupon.code;
+    couponMessage.textContent = `Voucher aplicado: desconto de ${appliedCoupon.discountType === 'PERCENTAGE' ? `${appliedCoupon.discountValue}%` : formatPrice(appliedCoupon.discountCents)}. Válido até ${new Date(appliedCoupon.expiresAt).toLocaleString('pt-BR')}.`;
+    updatePaymentSummary();
+  } catch (error) {
+    appliedCoupon = null;
+    couponMessage.textContent = error.message || 'Não foi possível validar o voucher.';
+    updatePaymentSummary();
+  } finally { applyCouponButton.disabled = false; }
 }
 
 function currentCepDigits() {
@@ -489,6 +531,7 @@ async function submitCheckout(event) {
         productId: selectedProduct.id,
         quantity,
         paymentMethod: selectedPaymentMethod(),
+        couponCode: appliedCoupon?.code || couponCodeInput.value.trim().toUpperCase(),
         checkoutRequestId,
         nome,
         cpf,
@@ -623,6 +666,14 @@ async function loadCatalog() {
     checkoutForm.querySelectorAll('[name="paymentMethod"]').forEach((input) => input.addEventListener('change', updatePaymentSummary));
     quantityDecrease.addEventListener('click', () => changeQuantity(-1));
     quantityIncrease.addEventListener('click', () => changeQuantity(1));
+  applyCouponButton.addEventListener('click', applyCoupon);
+  couponCodeInput.addEventListener('input', () => {
+    if (appliedCoupon && couponCodeInput.value.trim().toUpperCase() !== appliedCoupon.code) {
+      appliedCoupon = null;
+      couponMessage.textContent = 'Código alterado. Clique em Aplicar voucher para validar novamente.';
+      updatePaymentSummary();
+    }
+  });
     copyPixButton.addEventListener('click', copyPixCode);
     checkPaymentButton.addEventListener('click', checkPaymentStatus);
     lookupCepButton.addEventListener('click', lookupCep);

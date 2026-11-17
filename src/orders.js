@@ -3,6 +3,45 @@ const QRCode = require('qrcode');
 const { validateCheckout, UUID_PATTERN } = require('./validation');
 const { buildPixgatePayload, normalizeTransactionId, requestPixgate } = require('./pixgate');
 
+const VOUCHER_CODE_PATTERN = /^[A-Z0-9][A-Z0-9_-]{2,39}$/;
+
+function normalizeVoucherCode(value) {
+  return typeof value === 'string' ? value.trim().toUpperCase() : '';
+}
+
+function calculateVoucherDiscount(voucher, productTotalCents) {
+  if (!voucher || !Number.isSafeInteger(productTotalCents) || productTotalCents <= 0) return 0;
+  if (voucher.discount_type === 'PERCENTAGE') {
+    return Math.min(productTotalCents, Math.floor((productTotalCents * Number(voucher.discount_value)) / 100));
+  }
+  return Math.min(productTotalCents, Number(voucher.discount_value));
+}
+
+async function findActiveVoucher(pool, code) {
+  const normalized = normalizeVoucherCode(code);
+  if (!normalized) return null;
+  const [rows] = await pool.execute(
+    `SELECT id, code, discount_type, discount_value, starts_at, expires_at
+       FROM discount_vouchers
+      WHERE code = ?
+        AND starts_at <= (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
+        AND expires_at > (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
+      LIMIT 1`,
+    [normalized],
+  );
+  return rows[0] || null;
+}
+
+function voucherResponse(voucher, discountCents, expiresAt) {
+  return {
+    code: voucher.code,
+    discountType: voucher.discount_type,
+    discountValue: voucher.discount_type === 'FIXED' ? Number(voucher.discount_value) / 100 : Number(voucher.discount_value),
+    discountCents,
+    expiresAt: toIso(expiresAt || voucher.expires_at),
+  };
+}
+
 function apiError(statusCode, error, retrySafe) {
   return { statusCode, body: { error, retrySafe } };
 }
@@ -64,6 +103,63 @@ async function setOrderPaymentStatus(pool, paymentId, status, transactionId = nu
   return rows[0]?.order_id || '';
 }
 
+async function createVoucher(pool, { discountType, discountValue, durationDays }) {
+  const type = discountType === 'PERCENTAGE' || discountType === 'FIXED' ? discountType : '';
+  const duration = Number(durationDays);
+  const value = Number(discountValue);
+  if (!type || ![1, 7].includes(duration) || !Number.isFinite(value) || value <= 0) {
+    throw new Error('Informe tipo, valor e validade do voucher corretamente.');
+  }
+  const storedValue = type === 'FIXED' ? Math.round(value * 100) : Math.round(value);
+  if (type === 'PERCENTAGE' && (storedValue < 1 || storedValue > 100)) {
+    throw new Error('O desconto percentual deve ficar entre 1% e 100%.');
+  }
+  if (type === 'FIXED' && (storedValue < 1 || storedValue > 100000000)) {
+    throw new Error('O desconto em valor é inválido.');
+  }
+  const preferredCode = `VITTA${type === 'FIXED' ? Math.floor(value) : storedValue}`;
+  let code = preferredCode;
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const [existing] = await pool.execute('SELECT id FROM discount_vouchers WHERE code = ? LIMIT 1', [code]);
+    if (!existing.length) break;
+    code = `${preferredCode}-${crypto.randomBytes(2).toString('hex').toUpperCase()}`;
+  }
+  if (!VOUCHER_CODE_PATTERN.test(code)) throw new Error('Não foi possível gerar um código de voucher.');
+  const id = crypto.randomUUID();
+  const [rows] = await pool.execute(
+    `INSERT INTO discount_vouchers (id, code, discount_type, discount_value, starts_at, expires_at)
+     VALUES (?, ?, ?, ?, (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'), (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') + (? * INTERVAL '1 day'))
+     RETURNING code, discount_type, discount_value, starts_at, expires_at`,
+    [id, code, type, storedValue, duration],
+  );
+  return rows[0];
+}
+
+async function listVouchers(pool) {
+  const [rows] = await pool.execute(
+    `SELECT code, discount_type, discount_value, starts_at, expires_at,
+            CASE WHEN expires_at > (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') THEN TRUE ELSE FALSE END AS active
+       FROM discount_vouchers ORDER BY created_at DESC LIMIT 200`,
+  );
+  return rows.map((row) => ({
+    code: row.code,
+    discountType: row.discount_type,
+    discountValue: row.discount_type === 'FIXED' ? Number(row.discount_value) / 100 : Number(row.discount_value),
+    startsAt: toIso(row.starts_at),
+    expiresAt: toIso(row.expires_at),
+    active: Boolean(row.active),
+  }));
+}
+
+async function validateVoucher(pool, { code, productTotalCents }) {
+  const normalized = normalizeVoucherCode(code);
+  if (!normalized || !VOUCHER_CODE_PATTERN.test(normalized)) throw new Error('Digite um código de voucher válido.');
+  const voucher = await findActiveVoucher(pool, normalized);
+  if (!voucher) throw new Error('Voucher inexistente ou expirado.');
+  const discountCents = calculateVoucherDiscount(voucher, productTotalCents);
+  return voucherResponse(voucher, discountCents);
+}
+
 async function processCheckout({
   pool,
   body,
@@ -90,6 +186,26 @@ async function processCheckout({
   const validation = validateCheckout(body, products, shippingCents);
   if (!validation.ok) return apiError(400, validation.error, true);
   const order = validation.value;
+  if (order.couponCode) {
+    let voucher;
+    try {
+      voucher = await findActiveVoucher(pool, order.couponCode);
+    } catch {
+      return apiError(503, 'Não foi possível validar o voucher agora.', true);
+    }
+    if (!voucher) return apiError(400, 'O voucher informado é inexistente ou expirado.', true);
+    order.discountCents = calculateVoucherDiscount(voucher, order.product.priceCents * order.quantity);
+    const discountedBase = (order.product.priceCents * order.quantity) - order.discountCents + order.shippingCents;
+    order.totalCents = order.paymentMethod === 'parcelado'
+      ? Math.floor((discountedBase * 110 + 50) / 100)
+      : discountedBase;
+    order.depositCents = order.paymentMethod === 'parcelado'
+      ? Math.floor((order.totalCents * 35 + 50) / 100)
+      : order.totalCents;
+    order.balanceCents = order.totalCents - order.depositCents;
+  } else {
+    order.discountCents = 0;
+  }
   const orderId = crypto.randomUUID();
   const paymentKinds = order.paymentMethod === 'parcelado'
     ? [{ kind: 'DEPOSIT', amountCents: order.depositCents }]
@@ -112,12 +228,12 @@ async function processCheckout({
     await pool.execute(
       `INSERT INTO orders (
         id, checkout_request_id, customer_id, webhook_token_hash, product_id, product_name, product_dose, product_packaging, quantity,
-        unit_price_cents, shipping_cents, total_cents, payer_name,
+        unit_price_cents, shipping_cents, total_cents, coupon_code, discount_cents, payer_name,
         address_cep, address_street, address_number, address_complement,
         address_neighborhood, address_city, address_state,
         delivery_consent_at, pixgate_consent_at, research_consent_at, payment_status, payment_method
       ) VALUES (
-        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
         (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'), (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
         CASE WHEN ? THEN (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') ELSE NULL END, 'CREATING', ?
       )`,
@@ -134,6 +250,8 @@ async function processCheckout({
         order.product.priceCents,
         order.shippingCents,
         order.totalCents,
+        order.couponCode || null,
+        order.discountCents,
         order.nome,
         order.address.cep,
         order.address.street,
@@ -274,6 +392,8 @@ async function processCheckout({
       totalValue: Number((order.totalCents / 100).toFixed(2)),
       balanceValue: order.paymentMethod === 'parcelado' ? Number((order.balanceCents / 100).toFixed(2)) : 0,
       paymentMethod: order.paymentMethod,
+      couponCode: order.couponCode || '',
+      discountCents: order.discountCents,
       status: 'PENDING',
     },
   };
@@ -432,10 +552,13 @@ async function markOrderPaidByTransactionId(pool, transactionId, webhookToken) {
 }
 
 module.exports = {
+  createVoucher,
   getCustomerOrderStatus,
   listCustomerOrders,
   listCustomersForAdmin,
+  listVouchers,
   markOrderPaidByAdmin,
   markOrderPaidByTransactionId,
   processCheckout,
+  validateVoucher,
 };

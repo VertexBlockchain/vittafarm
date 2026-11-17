@@ -10,6 +10,9 @@ const {
   markOrderPaidByAdmin,
   markOrderPaidByTransactionId,
   processCheckout,
+  createVoucher,
+  listVouchers,
+  validateVoucher,
 } = require('./src/orders');
 const { validateCheckout } = require('./src/validation');
 const {
@@ -258,6 +261,34 @@ async function handlePixgateWebhook(req, res, requestUrl) {
   }
 }
 
+async function handleVoucherValidation(req, res) {
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    return sendJson(res, 405, { error: 'Use POST para validar o voucher.' });
+  }
+  let body;
+  try { body = await readJson(req); } catch (error) {
+    return sendJson(res, error.statusCode || 400, { error: error.message });
+  }
+  if (Object.keys(body).some((field) => !['code', 'productId', 'quantity'].includes(field))) {
+    return sendJson(res, 400, { error: 'O formulário contém campos não permitidos.' });
+  }
+  const product = PRODUCTS[body.productId];
+  const quantity = body.quantity === undefined ? 1 : body.quantity;
+  if (!product || !Number.isSafeInteger(quantity) || quantity < 1 || quantity > 20) {
+    return sendJson(res, 400, { error: 'Selecione um produto e uma quantidade válidos.' });
+  }
+  try {
+    const voucher = await validateVoucher(getPool(), {
+      code: body.code,
+      productTotalCents: product.priceCents * quantity,
+    });
+    return sendJson(res, 200, { voucher });
+  } catch (error) {
+    return sendJson(res, 400, { error: error.message || 'Voucher inexistente ou expirado.' });
+  }
+}
+
 async function requireAdmin(req, res, pool) {
   const token = readSessionToken(req);
   if (!token) {
@@ -497,6 +528,43 @@ async function handleAdmin(req, res, pathname) {
       : sendJson(res, 401, { authenticated: false });
   }
 
+  if (pathname === '/api/admin/vouchers') {
+    if (req.method !== 'GET') {
+      res.setHeader('Allow', 'GET');
+      return sendJson(res, 405, { error: 'Use GET para listar vouchers.' });
+    }
+    const pool = getPool();
+    if (!await requireAdmin(req, res, pool)) return;
+    try { return sendJson(res, 200, { vouchers: await listVouchers(pool) }); }
+    catch { return sendJson(res, 503, { error: 'Não foi possível consultar os vouchers agora.' }); }
+  }
+
+  if (pathname === '/api/admin/vouchers/create') {
+    if (req.method !== 'POST') {
+      res.setHeader('Allow', 'POST');
+      return sendJson(res, 405, { error: 'Use POST para criar um voucher.' });
+    }
+    let body;
+    try { body = await readJson(req); } catch (error) {
+      return sendJson(res, error.statusCode || 400, { error: error.message });
+    }
+    if (Object.keys(body).some((field) => !['discountType', 'discountValue', 'durationDays'].includes(field))) {
+      return sendJson(res, 400, { error: 'O formulário contém campos não permitidos.' });
+    }
+    const pool = getPool();
+    if (!await requireAdmin(req, res, pool)) return;
+    try {
+      const voucher = await createVoucher(pool, body);
+      return sendJson(res, 201, { voucher: {
+        code: voucher.code,
+        discountType: voucher.discount_type,
+        discountValue: voucher.discount_type === 'FIXED' ? Number(voucher.discount_value) / 100 : Number(voucher.discount_value),
+        startsAt: voucher.starts_at,
+        expiresAt: voucher.expires_at,
+      } });
+    } catch (error) { return sendJson(res, 400, { error: error.message || 'Não foi possível criar o voucher.' }); }
+  }
+
   if (pathname === '/api/admin/customers') {
     if (req.method !== 'GET') {
       res.setHeader('Allow', 'GET');
@@ -613,6 +681,10 @@ function createServer() {
         return sendJson(res, 405, { error: 'Use POST para confirmar a transação Pixgate.' });
       }
       return handlePixgateWebhook(req, res, requestUrl);
+    }
+
+    if (pathname === '/api/vouchers/validate') {
+      return handleVoucherValidation(req, res);
     }
 
     if (pathname.startsWith('/api/customer/')) {

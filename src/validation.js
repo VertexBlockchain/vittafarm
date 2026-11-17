@@ -2,7 +2,7 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3
 const ADDRESS_KEYS = new Set(['cep', 'street', 'number', 'complement', 'neighborhood', 'city', 'state']);
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CHECKOUT_KEYS = new Set([
-  'productId', 'quantity', 'paymentMethod', 'checkoutRequestId', 'nome', 'cpf', 'email', 'phone', 'whatsappMarketingConsent', 'password', 'passwordConfirmation', 'device', 'termsConsent', 'address',
+  'productId', 'quantity', 'paymentMethod', 'checkoutRequestId', 'couponCode', 'nome', 'cpf', 'email', 'phone', 'whatsappMarketingConsent', 'password', 'passwordConfirmation', 'device', 'termsConsent', 'address',
 ]);
 
 function hasRepeatedDigits(value) {
@@ -151,6 +151,7 @@ function validateCheckout(body, products, shippingCents = 3000) {
           checkoutRequestId: body.checkoutRequestId.toLowerCase(),
           product,
           quantity,
+      couponCode: typeof body.couponCode === 'string' ? body.couponCode.trim().toUpperCase() : '',
       paymentMethod: body.paymentMethod,
       nome: name,
       cpf,
